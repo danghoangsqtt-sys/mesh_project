@@ -24,7 +24,19 @@ import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.Style
+import org.maplibre.android.style.layers.CircleLayer
+import org.maplibre.android.style.layers.HeatmapLayer
+import org.maplibre.android.style.layers.PropertyFactory.*
+import org.maplibre.android.style.layers.SymbolLayer
+import org.maplibre.android.style.sources.GeoJsonOptions
+import org.maplibre.android.style.sources.GeoJsonSource
+import org.maplibre.android.style.sources.RasterDemSource
+import org.maplibre.geojson.Feature
+import org.maplibre.geojson.FeatureCollection
+import org.maplibre.geojson.Point
+import com.google.gson.JsonObject
 import java.io.File
+import java.util.Locale
 
 @Composable
 fun MapScreen(
@@ -67,8 +79,9 @@ fun MapScreen(
         },
         update = { view ->
             view.getMapAsync { map ->
-                if (map.style != null) {
+                if (map.style != null && map.style!!.isFullyLoaded) {
                     updateMarkers(map, soldiers, gatewayPos, viewModel)
+                    updateGeoJsonSources(map, soldiers)
                     drawTrails(map, trails)
                 }
             }
@@ -93,12 +106,10 @@ private fun setupMap(
     soldiers: List<SoldierEntity>,
     gatewayPos: Pair<Double, Double>?
 ) {
-    // Check for local MBTiles
     val mapsDir = File(context.filesDir, "maps")
     val mbtilesFile = mapsDir.listFiles()?.firstOrNull { it.extension == "mbtiles" }
 
     val styleUri = if (mbtilesFile != null) {
-        // Use MBTiles source — would need a custom style referencing the mbtiles
         "asset://map_style_military.json"
     } else {
         "asset://map_style_military.json"
@@ -112,23 +123,85 @@ private fun setupMap(
         style.addImage("marker-offline", createCircleMarker(Color.parseColor("#9E9E9E"), 20))
         style.addImage("marker-gateway", createStarMarker(Color.parseColor("#2196F3"), 32))
 
+        // Phase 5.3: 3D Terrain
+        style.addSource(RasterDemSource("terrain-source", "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"))
+        
+        setupAdvancedLayers(style)
+
         updateMarkers(map, soldiers, gatewayPos, null)
+        updateGeoJsonSources(map, soldiers)
     }
 
-    // Default camera — Nha Trang center
     map.cameraPosition = CameraPosition.Builder()
         .target(LatLng(12.2388, 109.1967))
         .zoom(14.0)
+        .tilt(45.0) // Phase 5.3: Pitch for 3D
         .build()
 
-    // Enable gestures
+    // Phase 5.4: Compass Widget
+    map.uiSettings.isCompassEnabled = true
     map.uiSettings.isZoomGesturesEnabled = true
     map.uiSettings.isScrollGesturesEnabled = true
     map.uiSettings.isRotateGesturesEnabled = true
     map.uiSettings.isTiltGesturesEnabled = true
 }
 
+private fun setupAdvancedLayers(style: Style) {
+    // 1. Accuracy Circles Source & Layer (Phase 5.5)
+    style.addSource(GeoJsonSource("accuracy-source"))
+    val accuracyLayer = CircleLayer("accuracy-layer", "accuracy-source").withProperties(
+        circleRadius(20f),
+        circleColor(Color.parseColor("#4CAF50")),
+        circleOpacity(0.2f),
+        circleStrokeColor(Color.parseColor("#4CAF50")),
+        circleStrokeWidth(1f)
+    )
+    style.addLayer(accuracyLayer)
 
+    // 2. Heatmap Source & Layer (Phase 5.1)
+    style.addSource(GeoJsonSource("heatmap-source"))
+    val heatmapLayer = HeatmapLayer("heatmap-layer", "heatmap-source").withProperties(
+        heatmapWeight(1.0f),
+        heatmapIntensity(1.0f),
+        heatmapRadius(30f),
+        heatmapOpacity(0.6f)
+    )
+    style.addLayerAbove(heatmapLayer, "accuracy-layer")
+
+    // 3. Clustering Source & Layer (Phase 5.2)
+    style.addSource(GeoJsonSource("cluster-source", GeoJsonOptions().withCluster(true).withClusterRadius(50)))
+    val clusterLayer = CircleLayer("cluster-layer", "cluster-source").withProperties(
+        circleRadius(15f),
+        circleColor(Color.parseColor("#FF9800")),
+        circleOpacity(0.8f)
+    ).withFilter(org.maplibre.android.style.expressions.Expression.has("point_count"))
+    
+    val clusterCountLayer = SymbolLayer("cluster-count-layer", "cluster-source").withProperties(
+        textField(org.maplibre.android.style.expressions.Expression.toString(org.maplibre.android.style.expressions.Expression.get("point_count"))),
+        textSize(12f),
+        textColor(Color.WHITE)
+    )
+    
+    style.addLayerAbove(clusterLayer, "heatmap-layer")
+    style.addLayerAbove(clusterCountLayer, "cluster-layer")
+}
+
+private fun updateGeoJsonSources(map: MapLibreMap, soldiers: List<SoldierEntity>) {
+    val style = map.style ?: return
+    if (!style.isFullyLoaded) return
+    
+    val features = soldiers.filter { it.latitude != 0.0 && it.longitude != 0.0 }.map { soldier ->
+        val feature = Feature.fromGeometry(Point.fromLngLat(soldier.longitude, soldier.latitude))
+        feature.addNumberProperty("nodeId", soldier.nodeId)
+        feature.addNumberProperty("hr", soldier.heartRate)
+        feature
+    }
+    val featureCollection = FeatureCollection.fromFeatures(features)
+
+    (style.getSource("accuracy-source") as? GeoJsonSource)?.setGeoJson(featureCollection)
+    (style.getSource("heatmap-source") as? GeoJsonSource)?.setGeoJson(featureCollection)
+    (style.getSource("cluster-source") as? GeoJsonSource)?.setGeoJson(featureCollection)
+}
 
 private fun updateMarkers(
     map: MapLibreMap,
@@ -138,10 +211,8 @@ private fun updateMarkers(
 ) {
     val style = map.style ?: return
 
-    // Remove old markers and re-add (acceptable at < 50 soldiers)
     map.annotations.forEach { map.removeAnnotation(it) }
 
-    // Add soldier markers
     for (soldier in soldiers) {
         if (soldier.latitude == 0.0 && soldier.longitude == 0.0) continue
 
@@ -156,12 +227,11 @@ private fun updateMarkers(
         val markerOptions = org.maplibre.android.annotations.MarkerOptions()
             .position(LatLng(soldier.latitude, soldier.longitude))
             .title("Node ${soldier.nodeId}")
-            .snippet("HR:${soldier.heartRate} SpO2:${soldier.spo2} Bat:${"%.1f".format(soldier.batteryVolts)}V")
+            .snippet("HR:${soldier.heartRate} SpO2:${soldier.spo2} Bat:${String.format(Locale.US, "%.1f", soldier.batteryVolts)}V")
 
-        val marker = map.addMarker(markerOptions)
+        map.addMarker(markerOptions)
     }
 
-    // Add gateway marker
     gatewayPos?.let { (lat, lon) ->
         if (lat != 0.0 && lon != 0.0) {
             val markerOptions = org.maplibre.android.annotations.MarkerOptions()
@@ -173,7 +243,6 @@ private fun updateMarkers(
         }
     }
 
-    // Marker click listener
     viewModel?.let { vm ->
         map.setOnMarkerClickListener { marker ->
             val nodeIdStr = marker.title.removePrefix("Node ")
@@ -185,26 +254,21 @@ private fun updateMarkers(
     }
 }
 
-// ─────────────────────────────────────────────
-// Trail Polylines
-// ─────────────────────────────────────────────
-
 private val TRAIL_COLORS = intArrayOf(
-    Color.parseColor("#4CAF50"), // Green
-    Color.parseColor("#2196F3"), // Blue
-    Color.parseColor("#FF9800"), // Orange
-    Color.parseColor("#9C27B0"), // Purple
-    Color.parseColor("#00BCD4"), // Cyan
-    Color.parseColor("#E91E63"), // Pink
-    Color.parseColor("#CDDC39"), // Lime
-    Color.parseColor("#FF5722")  // Deep Orange
+    Color.parseColor("#4CAF50"),
+    Color.parseColor("#2196F3"),
+    Color.parseColor("#FF9800"),
+    Color.parseColor("#9C27B0"),
+    Color.parseColor("#00BCD4"),
+    Color.parseColor("#E91E63"),
+    Color.parseColor("#CDDC39"),
+    Color.parseColor("#FF5722")
 )
 
 private fun drawTrails(
     map: MapLibreMap,
     trails: Map<Int, List<PositionHistoryEntity>>
 ) {
-    // Remove existing polylines
     map.polylines.forEach { map.removePolyline(it) }
 
     for ((nodeId, positions) in trails) {
@@ -222,10 +286,6 @@ private fun drawTrails(
         map.addPolyline(polylineOptions)
     }
 }
-
-// ─────────────────────────────────────────────
-// Marker Icon Generators
-// ─────────────────────────────────────────────
 
 private fun createCircleMarker(color: Int, size: Int): Bitmap {
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)

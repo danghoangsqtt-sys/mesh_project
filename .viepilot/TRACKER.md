@@ -12,14 +12,14 @@
 
 ## Progress Overview
 
-### Phase 5 — Advanced Mapping & Visualization (0/5 tasks)
+### Phase 5 — Advanced Mapping & Visualization (5/5 tasks)
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 5.1 | Offline Heatmap Overlay | ⬜ Todo | |
-| 5.2 | Marker Clustering | ⬜ Todo | |
-| 5.3 | 3D Terrain | ⬜ Todo | |
-| 5.4 | Compass Widget | ⬜ Todo | |
-| 5.5 | GPS Accuracy Circles | ⬜ Todo | |
+| 5.1 | Offline Heatmap Overlay | ✅ Done | MapLibre HeatmapLayer |
+| 5.2 | Marker Clustering | ✅ Done | GeoJsonSource clusters |
+| 5.3 | 3D Terrain | ✅ Done | RasterDemSource & tilt |
+| 5.4 | Compass Widget | ✅ Done | MapLibre UI settings |
+| 5.5 | GPS Accuracy Circles | ✅ Done | CircleLayer under nodes |
 
 ### Phase 6 — Advanced Communication & OTA (0/3 tasks)
 | # | Task | Status | Notes |
