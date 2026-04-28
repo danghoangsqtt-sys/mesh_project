@@ -119,7 +119,11 @@ fun NodeTable(
                 // SpO2
                 Text(
                     text = "${soldier.spo2}%",
-                    color = MeshColors.TextPrimary,
+                    color = when {
+                        soldier.spo2 < 90 -> MeshColors.StatusCrit
+                        soldier.spo2 < 95 -> MeshColors.StatusWarn
+                        else -> MeshColors.StatusOk
+                    },
                     fontSize = 11.sp,
                     fontFamily = FontFamily.Monospace,
                     modifier = Modifier.size(width = 40.dp, height = 18.dp),
@@ -129,7 +133,11 @@ fun NodeTable(
                 // Temp
                 Text(
                     text = "${"%.1f".format(soldier.temperature)}°",
-                    color = MeshColors.TextPrimary,
+                    color = when {
+                        soldier.temperature > 38.5f -> MeshColors.StatusCrit
+                        soldier.temperature > 37.5f -> MeshColors.StatusWarn
+                        else -> MeshColors.StatusOk
+                    },
                     fontSize = 11.sp,
                     fontFamily = FontFamily.Monospace,
                     modifier = Modifier.size(width = 48.dp, height = 18.dp),

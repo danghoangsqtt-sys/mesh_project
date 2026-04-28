@@ -77,7 +77,8 @@ fun TacticalPanel(
 
         // Command Panel
         CommandPanel(
-            onSendCommand = onSendCommand
+            onSendCommand = onSendCommand,
+            nodeIds = soldiers.map { it.nodeId }
         )
 
         // Event Log

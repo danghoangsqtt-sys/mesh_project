@@ -46,6 +46,13 @@
 | 3.5 | Multi-Gateway Support | ✅ Done | Dedup manager, feedPacket API |
 | 3.6 | Encrypted Communication | ✅ Done | AES-128-CBC, key generation |
 
+## Backlog
+
+### Pending Requests
+| ID | Type | Title | Priority | Status |
+|----|------|-------|----------|--------|
+| FEAT-001 | ✨ | Desktop Parity: Gateway UI + Command Messaging + Sensor Display | high | new |
+
 ## Decision Log
 
 | Date | Decision | Rationale |
@@ -63,3 +70,4 @@
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|
 | 0.1.0-dev | 2026-04-27 | Phase 1 | Project crystallized from brainstorm |
+| 1.0.0 | 2026-04-28 | Phase 3 | All 3 phases complete (20 tasks) |

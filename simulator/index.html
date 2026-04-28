@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesh Command — Tactical Simulator</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;600;700&display=swap');
+:root{
+  --bg-dark:#1a2e0a;--bg-light:#2a3e1a;--accent:#3B5323;
+  --surface:#223318;--text:#c8e6a0;--text-dim:#8aaa6a;
+  --ok:#4CAF50;--warn:#FF9800;--crit:#f44336;--offline:#666;
+  --blue:#2196F3;--border:#3a5a2a;
+}
+body{background:#0a1a00;color:var(--text);font-family:'Inter',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.topbar{background:linear-gradient(90deg,#1a2e0a,#2a4a1a);height:36px;display:flex;align-items:center;padding:0 16px;border-bottom:2px solid var(--ok);font-family:'Share Tech Mono',monospace;font-size:13px;gap:16px}
+.topbar .logo{color:var(--ok);font-weight:700;font-size:14px;letter-spacing:2px}
+.topbar .status{display:flex;gap:12px;margin-left:auto}
+.topbar .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+.topbar .dot.green{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.topbar .dot.red{background:var(--crit);box-shadow:0 0 6px var(--crit);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.3}}
+.main{display:flex;flex:1;overflow:hidden}
+.map-panel{flex:0 0 65%;position:relative}
+#map{width:100%;height:100%}
+.tactical-panel{flex:0 0 35%;background:var(--bg-dark);display:flex;flex-direction:column;border-left:2px solid var(--border);overflow:hidden}
+.conn-bar{background:linear-gradient(90deg,#1a3a0a,#2a4a1a);padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);font-size:12px}
+.conn-bar .badge{background:var(--ok);color:#000;padding:2px 8px;border-radius:3px;font-weight:700;font-size:11px}
+.section-title{background:var(--accent);color:var(--text);padding:6px 12px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+.node-table{flex:0 0 auto;max-height:200px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:var(--surface);padding:4px 8px;text-align:left;color:var(--text-dim);font-weight:600;position:sticky;top:0}
+td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
+tr:hover{background:rgba(76,175,80,.1)}
+tr.selected{background:rgba(76,175,80,.2);border-left:3px solid var(--ok)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.cmd-panel{padding:8px 12px;border-top:1px solid var(--border)}
+.cmd-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:12px}
+.cmd-input:focus{outline:none;border-color:var(--ok)}
+.event-log{flex:1;overflow-y:auto;padding:0}
+.event{padding:4px 12px;font-size:11px;font-family:'Share Tech Mono',monospace;border-bottom:1px solid rgba(255,255,255,.03)}
+.event.alert{color:var(--crit);background:rgba(244,67,54,.05)}
+.event.warn{color:var(--warn);background:rgba(255,152,0,.05)}
+.event.info{color:var(--blue)}
+.event .time{color:var(--text-dim);margin-right:8px}
+.status-bar{background:var(--surface);padding:6px 12px;font-size:11px;display:flex;justify-content:space-between;border-top:1px solid var(--border);font-family:'Share Tech Mono',monospace}
+.trail-ctrl{position:absolute;bottom:12px;left:12px;z-index:1000;background:rgba(26,46,10,.9);border:1px solid var(--border);border-radius:6px;padding:8px 12px;display:flex;gap:8px;align-items:center;font-size:11px}
+.trail-ctrl button{background:var(--accent);color:var(--text);border:1px solid var(--border);padding:3px 10px;border-radius:3px;cursor:pointer;font-size:11px}
+.trail-ctrl button.active{background:var(--ok);color:#000}
+.leaflet-tile-pane{filter:hue-rotate(90deg) saturate(0.3) brightness(0.7)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="logo">⬡ MESH COMMAND</span>
+  <span>v1.1.0</span>
+  <span style="color:var(--text-dim)">|</span>
+  <span><span class="dot green"></span>USB: Connected</span>
+  <div class="status">
+    <span>NODES: <b id="nodeCount">0</b>/8</span>
+    <span style="color:var(--text-dim)">|</span>
+    <span>PKT: <b id="pktCount">0</b></span>
+    <span style="color:var(--text-dim)">|</span>
+    <span id="clock">09:21:00</span>
+  </div>
+</div>
+<div class="main">
+  <div class="map-panel">
+    <div id="map"></div>
+    <div class="trail-ctrl">
+      <span style="color:var(--text-dim)">TRAIL:</span>
+      <button onclick="setTrail(30)" class="active" id="t30">30m</button>
+      <button onclick="setTrail(60)" id="t60">1h</button>
+      <button onclick="setTrail(0)" id="tall">ALL</button>
+    </div>
+  </div>
+  <div class="tactical-panel">
+    <div class="section-title">⚡ GATEWAY CONNECTION</div>
+    <div class="conn-bar" style="flex-wrap:wrap;gap:6px">
+      <select id="gwType" style="background:var(--surface);color:var(--text);border:1px solid var(--border);padding:3px 8px;border-radius:3px;font-size:11px"><option>USB OTG</option><option>WiFi AP</option></select>
+      <span style="color:var(--text-dim);font-size:11px">Baud:</span>
+      <select id="gwBaud" style="background:var(--surface);color:var(--text);border:1px solid var(--border);padding:3px 8px;border-radius:3px;font-size:11px"><option>115200</option><option>9600</option><option>57600</option></select>
+      <button onclick="toggleConnect()" id="connBtn" style="background:var(--ok);color:#000;border:none;padding:3px 12px;border-radius:3px;font-weight:700;font-size:11px;cursor:pointer">Connect</button>
+      <span id="connStatus"><span class="dot green"></span>● ONLINE</span>
+    </div>
+    <div class="section-title">📡 Node Status</div>
+    <div class="node-table"><table>
+      <thead><tr><th>ID</th><th>ST</th><th>LAT</th><th>LON</th><th>HR</th><th>SpO₂</th><th>Temp</th><th>BAT</th></tr></thead>
+      <tbody id="nodeBody"></tbody>
+    </table></div>
+    <div class="section-title">📡 COMMAND & CONTROL</div>
+    <div class="cmd-panel">
+      <input class="cmd-input" placeholder="Type message..." id="cmdInput" onkeydown="if(event.key==='Enter')sendCmd()" style="margin-bottom:6px">
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <select id="msgType" style="flex:1;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:4px 8px;border-radius:3px;font-size:11px"><option>Broadcast</option><option>Direct</option><option>Command</option></select>
+        <select id="msgTarget" style="flex:1;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:4px 8px;border-radius:3px;font-size:11px"><option>All</option><option>Node 1</option><option>Node 2</option><option>Node 3</option><option>Node 4</option><option>Node 5</option><option>Node 6</option></select>
+      </div>
+      <button onclick="sendCmd()" style="width:100%;background:var(--accent);color:var(--text);border:1px solid var(--border);padding:6px;border-radius:3px;font-weight:700;font-size:12px;cursor:pointer">Send Message</button>
+    </div>
+    <div class="section-title">📋 Event Log</div>
+    <div class="event-log" id="eventLog"></div>
+    <div class="status-bar">
+      <span>DB: <span id="dbSize">0</span> records</span>
+      <span>MEM: 42MB</span>
+      <span id="uptime">UP: 00:00</span>
+    </div>
+  </div>
+</div>
+<script>
+// ── Map Setup ──
+const map=L.map('map',{zoomControl:false}).setView([10.823,106.629],15);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:''}).addTo(map);
+L.control.zoom({position:'topright'}).addTo(map);
+
+// ── Soldier Simulation ──
+const soldiers=[
+  {id:1,name:"Alpha-1",lat:10.824,lon:106.628,hr:82,spo2:98,temp:36.5,bat:3.9,status:"ok",heading:45,trail:[]},
+  {id:2,name:"Alpha-2",lat:10.823,lon:106.630,hr:95,spo2:97,temp:36.8,bat:3.7,status:"ok",heading:120,trail:[]},
+  {id:3,name:"Bravo-1",lat:10.822,lon:106.627,hr:110,spo2:94,temp:37.8,bat:3.3,status:"warn",heading:200,trail:[]},
+  {id:4,name:"Bravo-2",lat:10.825,lon:106.631,hr:78,spo2:99,temp:36.2,bat:4.1,status:"ok",heading:310,trail:[]},
+  {id:5,name:"Charlie-1",lat:10.821,lon:106.629,hr:140,spo2:91,temp:38.9,bat:2.8,status:"crit",heading:90,trail:[]},
+  {id:6,name:"Charlie-2",lat:10.826,lon:106.626,hr:72,spo2:98,temp:36.4,bat:3.5,status:"ok",heading:180,trail:[]}
+];
+
+const colors={ok:'#4CAF50',warn:'#FF9800',crit:'#f44336',offline:'#666'};
+const trailColors=['#4CAF50','#2196F3','#FF9800','#9C27B0','#00BCD4','#E91E63'];
+const markers={},trails={};
+let pktCount=0,dbRecords=0,startTime=Date.now(),selectedId=null;
+
+function createIcon(status,selected){
+  const c=colors[status]||colors.ok;
+  const s=selected?16:10;
+  const svg=`<svg width="${s*2+4}" height="${s*2+4}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="${s+2}" cy="${s+2}" r="${s}" fill="${c}" stroke="white" stroke-width="2" opacity="0.9"/>
+    ${selected?`<circle cx="${s+2}" cy="${s+2}" r="${s+6}" fill="none" stroke="${c}" stroke-width="2" opacity="0.5"/>`:''}
+  </svg>`;
+  return L.divIcon({html:svg,iconSize:[s*2+4,s*2+4],iconAnchor:[s+2,s+2],className:''});
+}
+
+soldiers.forEach((s,i)=>{
+  markers[s.id]=L.marker([s.lat,s.lon],{icon:createIcon(s.status,false)})
+    .bindTooltip(`Node ${s.id}: ${s.name}`,{permanent:false,direction:'top',offset:[0,-12]})
+    .on('click',()=>selectSoldier(s.id))
+    .addTo(map);
+  trails[s.id]=L.polyline([],{color:trailColors[i%trailColors.length],weight:2,opacity:0.7}).addTo(map);
+});
+
+function selectSoldier(id){
+  selectedId=id;
+  soldiers.forEach(s=>{
+    markers[s.id].setIcon(createIcon(s.status,s.id===id));
+  });
+  updateTable();
+  if(id){const s=soldiers.find(x=>x.id===id);if(s)map.panTo([s.lat,s.lon]);}
+}
+
+// ── Movement Simulation ──
+function moveSoldiers(){
+  soldiers.forEach(s=>{
+    s.trail.push({lat:s.lat,lon:s.lon,t:Date.now()});
+    if(s.trail.length>200)s.trail.shift();
+    s.lat+=(Math.random()-.5)*.0003;
+    s.lon+=(Math.random()-.5)*.0003;
+    s.heading=(s.heading+Math.random()*20-10+360)%360;
+    s.hr=Math.max(60,Math.min(160,s.hr+Math.floor(Math.random()*7-3)));
+    s.spo2=Math.max(85,Math.min(100,s.spo2+Math.floor(Math.random()*3-1)));
+    s.temp=Math.max(35.5,Math.min(40,s.temp+(Math.random()-.5)*.2));
+    s.bat=Math.max(2.5,s.bat-Math.random()*.002);
+    if(s.hr>130||s.bat<3.0)s.status='crit';
+    else if(s.hr>110||s.bat<3.3)s.status='warn';
+    else s.status='ok';
+    markers[s.id].setLatLng([s.lat,s.lon]);
+    markers[s.id].setIcon(createIcon(s.status,s.id===selectedId));
+    trails[s.id].setLatLngs(s.trail.map(p=>[p.lat,p.lon]));
+    pktCount++;dbRecords++;
+  });
+  document.getElementById('pktCount').textContent=pktCount;
+  document.getElementById('dbSize').textContent=dbRecords;
+  document.getElementById('nodeCount').textContent=soldiers.filter(s=>s.status!=='offline').length;
+  updateTable();
+}
+
+let gwConnected=true;
+function toggleConnect(){
+  gwConnected=!gwConnected;
+  document.getElementById('connBtn').textContent=gwConnected?'Disconnect':'Connect';
+  document.getElementById('connBtn').style.background=gwConnected?'var(--crit)':'var(--ok)';
+  document.getElementById('connBtn').style.color=gwConnected?'#fff':'#000';
+  document.getElementById('connStatus').innerHTML=gwConnected?'<span class="dot green"></span>● ONLINE':'<span class="dot red"></span>● OFFLINE';
+}
+function updateTable(){
+  const tb=document.getElementById('nodeBody');
+  tb.innerHTML=soldiers.map(s=>{
+    const sc=colors[s.status];
+    const sel=s.id===selectedId?'selected':'';
+    const spo2c=s.spo2<90?'var(--crit)':s.spo2<95?'var(--warn)':'var(--ok)';
+    const tempc=s.temp>38.5?'var(--crit)':s.temp>37.5?'var(--warn)':'var(--ok)';
+    return `<tr class="${sel}" onclick="selectSoldier(${s.id})" style="cursor:pointer">
+      <td><b>${s.id}</b></td>
+      <td><span class="status-dot" style="background:${sc};box-shadow:0 0 4px ${sc}"></span></td>
+      <td>${s.lat.toFixed(4)}</td><td>${s.lon.toFixed(4)}</td>
+      <td style="color:${s.hr>120?'var(--crit)':s.hr>100?'var(--warn)':'var(--ok)'}">${s.hr}</td>
+      <td style="color:${spo2c}">${s.spo2}%</td>
+      <td style="color:${tempc}">${s.temp.toFixed(1)}°</td>
+      <td style="color:${s.bat<3.0?'var(--crit)':s.bat<3.5?'var(--warn)':'var(--ok)'}">${s.bat.toFixed(1)}V</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Event Log ──
+const eventTypes=[
+  {msg:'Position update received',cls:'info',freq:8},
+  {msg:'Heartbeat check OK',cls:'info',freq:15},
+  {msg:'Node {id}: Heart rate elevated ({hr} BPM)',cls:'warn',freq:25},
+  {msg:'Node {id}: Battery low ({bat}V)',cls:'warn',freq:30},
+  {msg:'Node {id}: SOS ALERT triggered!',cls:'alert',freq:60},
+  {msg:'Geofence check: all nodes within safe zone',cls:'info',freq:20}
+];
+let evtCounter=0;
+function addEvent(){
+  evtCounter++;
+  const candidates=eventTypes.filter((_,i)=>evtCounter%eventTypes[i].freq===0);
+  if(!candidates.length)return;
+  const evt=candidates[Math.floor(Math.random()*candidates.length)];
+  const s=soldiers[Math.floor(Math.random()*soldiers.length)];
+  const msg=evt.msg.replace('{id}',s.id).replace('{hr}',s.hr).replace('{bat}',s.bat.toFixed(1));
+  const now=new Date().toLocaleTimeString('en-GB');
+  const log=document.getElementById('eventLog');
+  log.innerHTML=`<div class="event ${evt.cls}"><span class="time">${now}</span>${msg}</div>`+log.innerHTML;
+  if(log.children.length>50)log.removeChild(log.lastChild);
+}
+
+function sendCmd(){
+  const input=document.getElementById('cmdInput');
+  const cmd=input.value.trim();if(!cmd)return;
+  const msgType=document.getElementById('msgType').value;
+  const target=document.getElementById('msgTarget').value;
+  const prefix=msgType==='Broadcast'?'[BROADCAST]':`[${msgType.toUpperCase()}→${target}]`;
+  const now=new Date().toLocaleTimeString('en-GB');
+  const log=document.getElementById('eventLog');
+  log.innerHTML=`<div class="event info"><span class="time">${now}</span>TX ${prefix} ${cmd}</div>`+log.innerHTML;
+  input.value='';
+}
+
+function setTrail(min){
+  document.querySelectorAll('.trail-ctrl button').forEach(b=>b.classList.remove('active'));
+  if(min===30)document.getElementById('t30').classList.add('active');
+  else if(min===60)document.getElementById('t60').classList.add('active');
+  else document.getElementById('tall').classList.add('active');
+}
+
+function updateClock(){
+  document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-GB');
+  const elapsed=Math.floor((Date.now()-startTime)/1000);
+  const m=String(Math.floor(elapsed/60)).padStart(2,'0');
+  const ss=String(elapsed%60).padStart(2,'0');
+  document.getElementById('uptime').textContent=`UP: ${m}:${ss}`;
+}
+
+// ── Start ──
+setInterval(moveSoldiers,1500);
+setInterval(addEvent,2000);
+setInterval(updateClock,1000);
+updateTable();
+addEvent();
+</script>
+</body>
+</html>
