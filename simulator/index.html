@@ -111,18 +111,18 @@ tr.selected{background:rgba(76,175,80,.2);border-left:3px solid var(--ok)}
 </div>
 <script>
 // ── Map Setup ──
-const map=L.map('map',{zoomControl:false}).setView([10.823,106.629],15);
+const map=L.map('map',{zoomControl:false}).setView([12.2388,109.1967],15);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:''}).addTo(map);
 L.control.zoom({position:'topright'}).addTo(map);
 
 // ── Soldier Simulation ──
 const soldiers=[
-  {id:1,name:"Alpha-1",lat:10.824,lon:106.628,hr:82,spo2:98,temp:36.5,bat:3.9,status:"ok",heading:45,trail:[]},
-  {id:2,name:"Alpha-2",lat:10.823,lon:106.630,hr:95,spo2:97,temp:36.8,bat:3.7,status:"ok",heading:120,trail:[]},
-  {id:3,name:"Bravo-1",lat:10.822,lon:106.627,hr:110,spo2:94,temp:37.8,bat:3.3,status:"warn",heading:200,trail:[]},
-  {id:4,name:"Bravo-2",lat:10.825,lon:106.631,hr:78,spo2:99,temp:36.2,bat:4.1,status:"ok",heading:310,trail:[]},
-  {id:5,name:"Charlie-1",lat:10.821,lon:106.629,hr:140,spo2:91,temp:38.9,bat:2.8,status:"crit",heading:90,trail:[]},
-  {id:6,name:"Charlie-2",lat:10.826,lon:106.626,hr:72,spo2:98,temp:36.4,bat:3.5,status:"ok",heading:180,trail:[]}
+  {id:1,name:"Alpha-1",lat:12.2405,lon:109.1955,hr:82,spo2:98,temp:36.5,bat:3.9,status:"ok",heading:45,trail:[]},
+  {id:2,name:"Alpha-2",lat:12.2390,lon:109.1980,hr:95,spo2:97,temp:36.8,bat:3.7,status:"ok",heading:120,trail:[]},
+  {id:3,name:"Bravo-1",lat:12.2370,lon:109.1940,hr:110,spo2:94,temp:37.8,bat:3.3,status:"warn",heading:200,trail:[]},
+  {id:4,name:"Bravo-2",lat:12.2420,lon:109.1990,hr:78,spo2:99,temp:36.2,bat:4.1,status:"ok",heading:310,trail:[]},
+  {id:5,name:"Charlie-1",lat:12.2355,lon:109.1960,hr:140,spo2:91,temp:38.9,bat:2.8,status:"crit",heading:90,trail:[]},
+  {id:6,name:"Charlie-2",lat:12.2430,lon:109.1935,hr:72,spo2:98,temp:36.4,bat:3.5,status:"ok",heading:180,trail:[]}
 ];
 
 const colors={ok:'#4CAF50',warn:'#FF9800',crit:'#f44336',offline:'#666'};

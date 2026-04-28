@@ -115,10 +115,10 @@ private fun setupMap(
         updateMarkers(map, soldiers, gatewayPos, null)
     }
 
-    // Default camera — Vietnam center
+    // Default camera — Nha Trang center
     map.cameraPosition = CameraPosition.Builder()
-        .target(LatLng(16.0, 108.0))
-        .zoom(5.0)
+        .target(LatLng(12.2388, 109.1967))
+        .zoom(14.0)
         .build()
 
     // Enable gestures
