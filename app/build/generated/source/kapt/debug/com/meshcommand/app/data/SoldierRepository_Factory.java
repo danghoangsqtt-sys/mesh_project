@@ -2,6 +2,7 @@
 package com.meshcommand.app.data;
 
 import com.meshcommand.app.data.dao.EventDao;
+import com.meshcommand.app.data.dao.PositionHistoryDao;
 import com.meshcommand.app.data.dao.SoldierDao;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
@@ -24,23 +25,29 @@ public final class SoldierRepository_Factory implements Factory<SoldierRepositor
 
   private final Provider<EventDao> eventDaoProvider;
 
+  private final Provider<PositionHistoryDao> positionHistoryDaoProvider;
+
   public SoldierRepository_Factory(Provider<SoldierDao> soldierDaoProvider,
-      Provider<EventDao> eventDaoProvider) {
+      Provider<EventDao> eventDaoProvider,
+      Provider<PositionHistoryDao> positionHistoryDaoProvider) {
     this.soldierDaoProvider = soldierDaoProvider;
     this.eventDaoProvider = eventDaoProvider;
+    this.positionHistoryDaoProvider = positionHistoryDaoProvider;
   }
 
   @Override
   public SoldierRepository get() {
-    return newInstance(soldierDaoProvider.get(), eventDaoProvider.get());
+    return newInstance(soldierDaoProvider.get(), eventDaoProvider.get(), positionHistoryDaoProvider.get());
   }
 
   public static SoldierRepository_Factory create(Provider<SoldierDao> soldierDaoProvider,
-      Provider<EventDao> eventDaoProvider) {
-    return new SoldierRepository_Factory(soldierDaoProvider, eventDaoProvider);
+      Provider<EventDao> eventDaoProvider,
+      Provider<PositionHistoryDao> positionHistoryDaoProvider) {
+    return new SoldierRepository_Factory(soldierDaoProvider, eventDaoProvider, positionHistoryDaoProvider);
   }
 
-  public static SoldierRepository newInstance(SoldierDao soldierDao, EventDao eventDao) {
-    return new SoldierRepository(soldierDao, eventDao);
+  public static SoldierRepository newInstance(SoldierDao soldierDao, EventDao eventDao,
+      PositionHistoryDao positionHistoryDao) {
+    return new SoldierRepository(soldierDao, eventDao, positionHistoryDao);
   }
 }

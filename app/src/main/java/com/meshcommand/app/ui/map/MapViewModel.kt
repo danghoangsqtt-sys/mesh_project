@@ -3,12 +3,15 @@ package com.meshcommand.app.ui.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meshcommand.app.data.SoldierRepository
+import com.meshcommand.app.data.entity.PositionHistoryEntity
 import com.meshcommand.app.data.entity.SoldierEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -30,6 +33,20 @@ class MapViewModel @Inject constructor(
     private val _cameraTarget = MutableStateFlow<Pair<Double, Double>?>(null)
     val cameraTarget: StateFlow<Pair<Double, Double>?> = _cameraTarget.asStateFlow()
 
+    // Trail duration (default 30 minutes)
+    private val _trailDurationMs = MutableStateFlow(30 * 60 * 1000L)
+    val trailDurationMs: StateFlow<Long> = _trailDurationMs.asStateFlow()
+
+    // All trails grouped by nodeId
+    @Suppress("OPT_IN_USAGE")
+    val allTrails: StateFlow<Map<Int, List<PositionHistoryEntity>>> = _trailDurationMs
+        .flatMapLatest { durationMs ->
+            val sinceMs = System.currentTimeMillis() - durationMs
+            soldierRepository.getAllTrails(sinceMs)
+                .map { positions -> positions.groupBy { it.nodeId } }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     fun selectSoldier(nodeId: Int?) {
         _selectedSoldierId.value = nodeId
     }
@@ -48,5 +65,9 @@ class MapViewModel @Inject constructor(
 
     fun clearCameraTarget() {
         _cameraTarget.value = null
+    }
+
+    fun setTrailDuration(durationMs: Long) {
+        _trailDurationMs.value = durationMs
     }
 }

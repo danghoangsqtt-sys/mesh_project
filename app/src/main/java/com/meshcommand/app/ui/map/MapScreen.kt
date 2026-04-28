@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import com.meshcommand.app.data.entity.PositionHistoryEntity
 import com.meshcommand.app.data.entity.SoldierEntity
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
@@ -34,6 +35,7 @@ fun MapScreen(
     val soldiers by viewModel.soldierPositions.collectAsState()
     val gatewayPos by viewModel.gatewayPosition.collectAsState()
     val cameraTarget by viewModel.cameraTarget.collectAsState()
+    val trails by viewModel.allTrails.collectAsState()
 
     // Initialize MapLibre once
     remember { MapLibre.getInstance(context) }
@@ -67,6 +69,7 @@ fun MapScreen(
             view.getMapAsync { map ->
                 if (map.style != null) {
                     updateMarkers(map, soldiers, gatewayPos, viewModel)
+                    drawTrails(map, trails)
                 }
             }
         },
@@ -179,6 +182,44 @@ private fun updateMarkers(
             }
             true
         }
+    }
+}
+
+// ─────────────────────────────────────────────
+// Trail Polylines
+// ─────────────────────────────────────────────
+
+private val TRAIL_COLORS = intArrayOf(
+    Color.parseColor("#4CAF50"), // Green
+    Color.parseColor("#2196F3"), // Blue
+    Color.parseColor("#FF9800"), // Orange
+    Color.parseColor("#9C27B0"), // Purple
+    Color.parseColor("#00BCD4"), // Cyan
+    Color.parseColor("#E91E63"), // Pink
+    Color.parseColor("#CDDC39"), // Lime
+    Color.parseColor("#FF5722")  // Deep Orange
+)
+
+private fun drawTrails(
+    map: MapLibreMap,
+    trails: Map<Int, List<PositionHistoryEntity>>
+) {
+    // Remove existing polylines
+    map.polylines.forEach { map.removePolyline(it) }
+
+    for ((nodeId, positions) in trails) {
+        if (positions.size < 2) continue
+
+        val points = positions.map { LatLng(it.latitude, it.longitude) }
+        val colorIndex = nodeId % TRAIL_COLORS.size
+        val color = TRAIL_COLORS[colorIndex]
+
+        val polylineOptions = org.maplibre.android.annotations.PolylineOptions()
+            .addAll(points)
+            .color(color)
+            .width(3f)
+
+        map.addPolyline(polylineOptions)
     }
 }
 

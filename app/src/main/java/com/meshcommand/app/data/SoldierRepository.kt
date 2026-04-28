@@ -3,8 +3,10 @@ package com.meshcommand.app.data
 import android.util.Log
 import com.meshcommand.app.comm.SoldierPacket
 import com.meshcommand.app.data.dao.EventDao
+import com.meshcommand.app.data.dao.PositionHistoryDao
 import com.meshcommand.app.data.dao.SoldierDao
 import com.meshcommand.app.data.entity.EventEntity
+import com.meshcommand.app.data.entity.PositionHistoryEntity
 import com.meshcommand.app.data.entity.SoldierEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +17,8 @@ import javax.inject.Singleton
 @Singleton
 class SoldierRepository @Inject constructor(
     private val soldierDao: SoldierDao,
-    private val eventDao: EventDao
+    private val eventDao: EventDao,
+    private val positionHistoryDao: PositionHistoryDao
 ) {
     companion object {
         private const val TAG = "SoldierRepository"
@@ -41,6 +44,12 @@ class SoldierRepository @Inject constructor(
 
     fun getEventsForNode(nodeId: Int): Flow<List<EventEntity>> = eventDao.getEventsForNode(nodeId)
 
+    fun getTrailForNode(nodeId: Int, sinceMs: Long): Flow<List<PositionHistoryEntity>> =
+        positionHistoryDao.getTrailForNode(nodeId, sinceMs)
+
+    fun getAllTrails(sinceMs: Long): Flow<List<PositionHistoryEntity>> =
+        positionHistoryDao.getAllTrails(sinceMs)
+
     // ─────────────────────────────────────────────
     // Packet Processing
     // ─────────────────────────────────────────────
@@ -50,6 +59,18 @@ class SoldierRepository @Inject constructor(
         soldierDao.upsert(entity)
 
         Log.d(TAG, "Processed packet: node=${packet.nodeId}, alert=${entity.alertLevel}")
+
+        // Save position history for trail
+        if (packet.latitude != 0f && packet.longitude != 0f) {
+            positionHistoryDao.insert(
+                PositionHistoryEntity(
+                    nodeId = packet.nodeId,
+                    latitude = packet.latitude.toDouble(),
+                    longitude = packet.longitude.toDouble(),
+                    heading = packet.heading.toDouble()
+                )
+            )
+        }
 
         // Generate alert events for critical states
         if (entity.alertLevel >= 2) {

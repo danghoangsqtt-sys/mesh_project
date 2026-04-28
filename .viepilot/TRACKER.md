@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Phase** | Phase 1 — Core Command Center |
+| **Phase** | Phase 2 — Enhanced Situational Awareness |
 | **Status** | 🔵 In Progress |
 | **Version** | 0.1.0-dev |
 | **Last Updated** | 2026-04-27 |
@@ -24,11 +24,11 @@
 | 1.7 | Tactical Panel UI | ✅ Done | 8 composables, military theme |
 | 1.8 | Main Activity & Layout | ✅ Done | Split-screen 65/35, Service wiring |
 
-### Phase 2 — Enhanced Situational Awareness (0/6 tasks)
+### Phase 2 — Enhanced Situational Awareness (1/6 tasks)
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | Path Trail | ⬜ Not Started | — |
+| 2.1 | Path Trail | ✅ Done | Position history DB, polyline rendering |
 | 2.2 | WiFi AP Communication | ⬜ Not Started | Requires firmware update |
 | 2.3 | Night Mode | ⬜ Not Started | — |
 | 2.4 | Advanced Alert System | ⬜ Not Started | — |

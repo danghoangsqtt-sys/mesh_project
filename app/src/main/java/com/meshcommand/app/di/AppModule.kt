@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.meshcommand.app.comm.UsbSerialManager
 import com.meshcommand.app.data.MeshDatabase
 import com.meshcommand.app.data.dao.EventDao
+import com.meshcommand.app.data.dao.PositionHistoryDao
 import com.meshcommand.app.data.dao.SoldierDao
 import dagger.Module
 import dagger.Provides
@@ -30,7 +31,7 @@ object AppModule {
             context,
             MeshDatabase::class.java,
             "mesh_command.db"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides
@@ -41,5 +42,10 @@ object AppModule {
     @Provides
     fun provideEventDao(database: MeshDatabase): EventDao {
         return database.eventDao()
+    }
+
+    @Provides
+    fun providePositionHistoryDao(database: MeshDatabase): PositionHistoryDao {
+        return database.positionHistoryDao()
     }
 }

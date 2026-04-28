@@ -10,9 +10,11 @@ import androidx.lifecycle.ViewModel;
 import com.meshcommand.app.data.MeshDatabase;
 import com.meshcommand.app.data.SoldierRepository;
 import com.meshcommand.app.data.dao.EventDao;
+import com.meshcommand.app.data.dao.PositionHistoryDao;
 import com.meshcommand.app.data.dao.SoldierDao;
 import com.meshcommand.app.di.AppModule_ProvideEventDaoFactory;
 import com.meshcommand.app.di.AppModule_ProvideMeshDatabaseFactory;
+import com.meshcommand.app.di.AppModule_ProvidePositionHistoryDaoFactory;
 import com.meshcommand.app.di.AppModule_ProvideSoldierDaoFactory;
 import com.meshcommand.app.service.MeshForegroundService;
 import com.meshcommand.app.ui.map.MapViewModel;
@@ -400,15 +402,15 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
-      static String com_meshcommand_app_ui_tactical_TacticalViewModel = "com.meshcommand.app.ui.tactical.TacticalViewModel";
-
       static String com_meshcommand_app_ui_map_MapViewModel = "com.meshcommand.app.ui.map.MapViewModel";
 
-      @KeepFieldType
-      TacticalViewModel com_meshcommand_app_ui_tactical_TacticalViewModel2;
+      static String com_meshcommand_app_ui_tactical_TacticalViewModel = "com.meshcommand.app.ui.tactical.TacticalViewModel";
 
       @KeepFieldType
       MapViewModel com_meshcommand_app_ui_map_MapViewModel2;
+
+      @KeepFieldType
+      TacticalViewModel com_meshcommand_app_ui_tactical_TacticalViewModel2;
     }
   }
 
@@ -592,6 +594,10 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
       return AppModule_ProvideEventDaoFactory.provideEventDao(provideMeshDatabaseProvider.get());
     }
 
+    private PositionHistoryDao positionHistoryDao() {
+      return AppModule_ProvidePositionHistoryDaoFactory.providePositionHistoryDao(provideMeshDatabaseProvider.get());
+    }
+
     @SuppressWarnings("unchecked")
     private void initialize(final ApplicationContextModule applicationContextModuleParam) {
       this.provideMeshDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<MeshDatabase>(singletonCImpl, 1));
@@ -632,7 +638,7 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
       public T get() {
         switch (id) {
           case 0: // com.meshcommand.app.data.SoldierRepository 
-          return (T) new SoldierRepository(singletonCImpl.soldierDao(), singletonCImpl.eventDao());
+          return (T) new SoldierRepository(singletonCImpl.soldierDao(), singletonCImpl.eventDao(), singletonCImpl.positionHistoryDao());
 
           case 1: // com.meshcommand.app.data.MeshDatabase 
           return (T) AppModule_ProvideMeshDatabaseFactory.provideMeshDatabase(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
