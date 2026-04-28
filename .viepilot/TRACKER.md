@@ -5,18 +5,18 @@
 | Field | Value |
 |-------|-------|
 | **Phase** | Phase 1 — Core Command Center |
-| **Status** | 🟡 Not Started |
+| **Status** | 🔵 In Progress |
 | **Version** | 0.1.0-dev |
 | **Last Updated** | 2026-04-27 |
 
 ## Progress Overview
 
-### Phase 1 — Core Command Center (0/8 tasks)
+### Phase 1 — Core Command Center (2/8 tasks)
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1.1 | Project Setup & Build System | ⬜ Not Started | — |
-| 1.2 | Binary Protocol Layer | ⬜ Not Started | — |
+| 1.1 | Project Setup & Build System | ✅ Done | Initialized Compose and Hilt |
+| 1.2 | Binary Protocol Layer | ✅ Done | Implemented CRC16, Parser, FrameExtractor |
 | 1.3 | USB OTG Serial Manager | ⬜ Not Started | — |
 | 1.4 | ForegroundService | ⬜ Not Started | — |
 | 1.5 | Data Layer (Room + Repository) | ⬜ Not Started | — |

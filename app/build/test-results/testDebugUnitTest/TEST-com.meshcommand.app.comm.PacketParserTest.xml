@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.meshcommand.app.comm.PacketParserTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-04-28T00:45:54" hostname="DESKTOP-VS3IC5D" time="0.016">
+  <properties/>
+  <testcase name="testFrameExtractor" classname="com.meshcommand.app.comm.PacketParserTest" time="0.016"/>
+  <testcase name="testBuildAndParse" classname="com.meshcommand.app.comm.PacketParserTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
