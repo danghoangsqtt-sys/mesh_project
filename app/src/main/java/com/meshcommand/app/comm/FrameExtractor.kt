@@ -4,14 +4,19 @@ import java.nio.charset.StandardCharsets
 
 class FrameExtractor(
     private val onPacketReceived: (SoldierPacket) -> Unit,
-    private val onGatewayGpsReceived: (lat: Double, lon: Double) -> Unit
+    private val onGatewayGpsReceived: (lat: Double, lon: Double) -> Unit,
+    private val onAckReceived: ((AckPacket) -> Unit)? = null
 ) {
     private val buffer = mutableListOf<Byte>()
     
     companion object {
         const val HEADER_BYTE = 0xAA.toByte()
         const val FOOTER_BYTE = 0x55.toByte()
-        const val PACKET_SIZE_WITH_FRAMING = SoldierPacket.PACKET_SIZE + 2 // header + data + footer = 1 + 40 + 1 = 42
+        const val PACKET_SIZE_WITH_FRAMING = SoldierPacket.PACKET_SIZE + 2 // 42
+        
+        const val ACK_MAGIC1 = 0x5A.toByte()
+        const val ACK_MAGIC2 = 0xA6.toByte()
+        const val ACK_SIZE = 8
     }
 
     fun append(bytes: ByteArray) {
@@ -23,47 +28,68 @@ class FrameExtractor(
 
     private fun processBuffer() {
         while (buffer.isNotEmpty()) {
-            // Check for Gateway GPS string "GW_GPS:lat,lon\n"
-            if (processGatewayGps()) {
-                continue
+            if (processGatewayGps()) continue
+
+            // Find first occurrence of either telemetry header or ACK header
+            val headerIndex = buffer.indexOf(HEADER_BYTE)
+            var ackIndex = -1
+            
+            for (i in 0 until buffer.size - 1) {
+                if (buffer[i] == ACK_MAGIC1 && buffer[i+1] == ACK_MAGIC2) {
+                    ackIndex = i
+                    break
+                }
             }
 
-            // Find header byte
-            val headerIndex = buffer.indexOf(HEADER_BYTE)
-            if (headerIndex == -1) {
-                // No header found, clear buffer except possible partial "GW_GPS"
+            // If neither found, clear buffer (except partial GW_GPS or ACK_MAGIC1 at the end)
+            if (headerIndex == -1 && ackIndex == -1) {
                 val gwIndex = indexOfSubList(buffer, "GW_".toByteArray(StandardCharsets.US_ASCII))
                 if (gwIndex != -1) {
                     if (gwIndex > 0) buffer.subList(0, gwIndex).clear()
+                } else if (buffer.last() == ACK_MAGIC1) {
+                    buffer.subList(0, buffer.size - 1).clear()
                 } else {
                     buffer.clear()
                 }
                 return
             }
 
-            // Remove garbage before header
-            if (headerIndex > 0) {
-                buffer.subList(0, headerIndex).clear()
-            }
+            // Determine which packet starts first
+            val processAckFirst = ackIndex != -1 && (headerIndex == -1 || ackIndex < headerIndex)
 
-            // Check if we have enough bytes for a full framed packet
-            if (buffer.size >= PACKET_SIZE_WITH_FRAMING) {
-                val footerIndex = PACKET_SIZE_WITH_FRAMING - 1
-                if (buffer[footerIndex] == FOOTER_BYTE) {
-                    val packetData = buffer.subList(1, footerIndex).toByteArray()
-                    val packet = PacketParser.parse(packetData)
-                    if (packet != null) {
-                        onPacketReceived(packet)
+            if (processAckFirst) {
+                if (ackIndex > 0) buffer.subList(0, ackIndex).clear()
+                
+                if (buffer.size >= ACK_SIZE) {
+                    val ackData = buffer.subList(0, ACK_SIZE).toByteArray()
+                    val ack = AckPacket.parse(ackData)
+                    if (ack != null) {
+                        onAckReceived?.invoke(ack)
+                        buffer.subList(0, ACK_SIZE).clear()
+                    } else {
+                        buffer.removeAt(0) // Invalid ACK, drop magic1
                     }
-                    // Remove processed frame
-                    buffer.subList(0, PACKET_SIZE_WITH_FRAMING).clear()
                 } else {
-                    // Invalid footer, drop header byte and continue searching
-                    buffer.removeAt(0)
+                    return // Wait for more bytes
                 }
             } else {
-                // Not enough bytes yet
-                return
+                if (headerIndex > 0) buffer.subList(0, headerIndex).clear()
+
+                if (buffer.size >= PACKET_SIZE_WITH_FRAMING) {
+                    val footerIndex = PACKET_SIZE_WITH_FRAMING - 1
+                    if (buffer[footerIndex] == FOOTER_BYTE) {
+                        val packetData = buffer.subList(1, footerIndex).toByteArray()
+                        val packet = PacketParser.parse(packetData)
+                        if (packet != null) {
+                            onPacketReceived(packet)
+                        }
+                        buffer.subList(0, PACKET_SIZE_WITH_FRAMING).clear()
+                    } else {
+                        buffer.removeAt(0) // Invalid footer, drop header
+                    }
+                } else {
+                    return // Wait for more bytes
+                }
             }
         }
     }

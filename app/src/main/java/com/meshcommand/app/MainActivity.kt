@@ -71,7 +71,22 @@ class MainActivity : ComponentActivity() {
                     .collect { (lat, lon) ->
                         Log.d(TAG, "Gateway GPS: $lat, $lon")
                     }
-                }
+            }
+
+            // Collect ACKs
+            lifecycleScope.launch(Dispatchers.IO) {
+                binder.ackFlow
+                    .catch { e -> Log.e(TAG, "ACK flow error: ${e.message}") }
+                    .collect { ack ->
+                        Log.d(TAG, "ACK received from Node ${ack.senderNodeId}")
+                        soldierRepository.logEvent(
+                            eventType = "COMM_ACK",
+                            message = "Command Delivered (CRC: ${ack.crc16})",
+                            severity = 0,
+                            nodeId = ack.senderNodeId
+                        )
+                    }
+            }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -110,7 +125,25 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MeshCommandTheme {
-                MeshCommandScreen()
+                MeshCommandScreen(
+                    onSendCommandClick = { message ->
+                        Log.d(TAG, "Send command: $message")
+                        serviceBinder?.let { binder ->
+                            val targetId = if (message.contains("→Node ")) {
+                                message.substringAfter("→Node ").substringBefore("]").toIntOrNull() ?: 0
+                            } else 0
+                            val packet = com.meshcommand.app.comm.CommandPacket(
+                                targetNodeId = targetId,
+                                message = message
+                            )
+                            binder.sendCommand(packet.toByteArray())
+                            
+                            val targetStr = if (targetId == 0) "Broadcast" else "Node $targetId"
+                            // Can't directly access tacticalViewModel here without fetching it, 
+                            // but we can log via the lambda
+                        }
+                    }
+                )
             }
         }
     }
@@ -125,7 +158,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MeshCommandScreen() {
+fun MeshCommandScreen(onSendCommandClick: (String) -> Unit) {
     val mapViewModel: MapViewModel = hiltViewModel()
     val tacticalViewModel: TacticalViewModel = hiltViewModel()
 
@@ -150,7 +183,12 @@ fun MeshCommandScreen() {
             onConnect = { /* Service auto-connects on start */ },
             onDisconnect = { /* Will be wired to service binder */ },
             onSendCommand = { message ->
-                Log.d("MeshCommand", "Send command: $message")
+                onSendCommandClick(message)
+                val targetId = if (message.contains("→Node ")) {
+                    message.substringAfter("→Node ").substringBefore("]").toIntOrNull() ?: 0
+                } else 0
+                val targetStr = if (targetId == 0) "Broadcast" else "Node $targetId"
+                tacticalViewModel.logEvent("COMM_TX", "Sent to $targetStr", 0, targetId.takeIf { it > 0 })
             },
             onSoldierClick = { nodeId ->
                 mapViewModel.centerOnSoldier(nodeId)

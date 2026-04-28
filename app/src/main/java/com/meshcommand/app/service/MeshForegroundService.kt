@@ -50,6 +50,7 @@ class MeshForegroundService : Service() {
     inner class LocalBinder : Binder() {
         val packetFlow: SharedFlow<SoldierPacket> get() = _packetFlow.asSharedFlow()
         val gatewayGpsFlow: SharedFlow<Pair<Double, Double>> get() = _gatewayGpsFlow.asSharedFlow()
+        val ackFlow: SharedFlow<com.meshcommand.app.comm.AckPacket> get() = _ackFlow.asSharedFlow()
         val connectionState: StateFlow<ConnectionState> get() = usbSerialManager.connectionState
 
         fun connect() {
@@ -95,6 +96,10 @@ class MeshForegroundService : Service() {
         replay = 1,
         extraBufferCapacity = 8
     )
+    private val _ackFlow = MutableSharedFlow<com.meshcommand.app.comm.AckPacket>(
+        replay = 0,
+        extraBufferCapacity = 32
+    )
 
     // ─────────────────────────────────────────────
     // Service Lifecycle
@@ -114,6 +119,9 @@ class MeshForegroundService : Service() {
             },
             onGatewayGpsReceived = { lat, lon ->
                 _gatewayGpsFlow.tryEmit(lat to lon)
+            },
+            onAckReceived = { ack ->
+                _ackFlow.tryEmit(ack)
             }
         )
 

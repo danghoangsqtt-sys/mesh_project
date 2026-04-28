@@ -3,6 +3,6 @@
 ## Progress
 | Task | Status | Completion |
 |------|--------|------------|
-| 6.1 Two-way Command Protocol | ⬜ not_started | - |
+| 6.1 Two-way Command Protocol | ✅ completed | Android + Gateway + Soldier sync |
 | 6.2 Remote Node Config | ⬜ not_started | - |
 | 6.3 OTA Firmware qua Gateway | ⬜ not_started | - |
