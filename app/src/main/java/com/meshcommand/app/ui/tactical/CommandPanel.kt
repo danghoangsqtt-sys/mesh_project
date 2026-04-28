@@ -46,9 +46,14 @@ fun CommandPanel(
     var messageText by remember { mutableStateOf("") }
     var msgTypeExpanded by remember { mutableStateOf(false) }
     var selectedMsgType by remember { mutableStateOf("Broadcast") }
-    val msgTypes = listOf("Broadcast", "Direct", "Command")
+    val msgTypes = listOf("Broadcast", "Direct", "Command", "Config")
     var targetExpanded by remember { mutableStateOf(false) }
     var selectedTarget by remember { mutableStateOf("All") }
+
+    // Config states
+    var configSf by remember { mutableStateOf("9") }
+    val sfOptions = listOf("7", "8", "9", "10", "11", "12")
+    var sfExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -67,32 +72,74 @@ fun CommandPanel(
             fontFamily = FontFamily.Monospace
         )
 
-        // Message input
-        BasicTextField(
-            value = messageText,
-            onValueChange = { messageText = it },
-            textStyle = TextStyle(
-                color = MeshColors.TextPrimary,
-                fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace
-            ),
-            cursorBrush = SolidColor(MeshColors.TextPrimary),
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MeshColors.SurfaceDark, RoundedCornerShape(4.dp))
-                .border(1.dp, MeshColors.Border, RoundedCornerShape(4.dp))
-                .padding(8.dp),
-            decorationBox = { innerTextField ->
-                if (messageText.isEmpty()) {
-                    Text(
-                        text = "Type message...",
-                        color = MeshColors.TextMuted,
-                        fontSize = 12.sp
-                    )
+        // Message / Config input
+        if (selectedMsgType == "Config") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MeshColors.SurfaceDark, RoundedCornerShape(4.dp))
+                    .border(1.dp, MeshColors.Border, RoundedCornerShape(4.dp))
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Spreading Factor:",
+                    color = MeshColors.TextPrimary,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+                Box {
+                    OutlinedButton(
+                        onClick = { sfExpanded = true },
+                        modifier = Modifier.height(32.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MeshColors.TextPrimary)
+                    ) {
+                        Text("SF$configSf", fontSize = 10.sp)
+                    }
+                    DropdownMenu(
+                        expanded = sfExpanded,
+                        onDismissRequest = { sfExpanded = false }
+                    ) {
+                        sfOptions.forEach { sf ->
+                            DropdownMenuItem(
+                                text = { Text("SF$sf", fontSize = 12.sp) },
+                                onClick = {
+                                    configSf = sf
+                                    sfExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
-                innerTextField()
             }
-        )
+        } else {
+            BasicTextField(
+                value = messageText,
+                onValueChange = { messageText = it },
+                textStyle = TextStyle(
+                    color = MeshColors.TextPrimary,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace
+                ),
+                cursorBrush = SolidColor(MeshColors.TextPrimary),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MeshColors.SurfaceDark, RoundedCornerShape(4.dp))
+                    .border(1.dp, MeshColors.Border, RoundedCornerShape(4.dp))
+                    .padding(8.dp),
+                decorationBox = { innerTextField ->
+                    if (messageText.isEmpty()) {
+                        Text(
+                            text = "Type message...",
+                            color = MeshColors.TextMuted,
+                            fontSize = 12.sp
+                        )
+                    }
+                    innerTextField()
+                }
+            )
+        }
 
         // Row: Message Type + Target dropdowns
         Row(
@@ -147,8 +194,7 @@ fun CommandPanel(
                     expanded = targetExpanded,
                     onDismissRequest = { targetExpanded = false }
                 ) {
-                    val targetOptions2 = listOf("All") + nodeIds.map { "Node $it" }
-                    targetOptions2.forEach { target ->
+                    targetOptions.forEach { target ->
                         DropdownMenuItem(
                             text = { Text(target, fontSize = 12.sp) },
                             onClick = {
@@ -164,13 +210,18 @@ fun CommandPanel(
         // Send button — full width like desktop app
         Button(
             onClick = {
-                if (messageText.isNotBlank()) {
-                    val prefix = when (selectedMsgType) {
-                        "Broadcast" -> "[BROADCAST]"
-                        "Direct" -> "[DM→$selectedTarget]"
-                        "Command" -> "[CMD→$selectedTarget]"
-                        else -> ""
-                    }
+                val isTargetBroadcast = selectedTarget == "All"
+                val prefix = when (selectedMsgType) {
+                    "Broadcast" -> "[BROADCAST]"
+                    "Direct" -> if (isTargetBroadcast) "[BROADCAST]" else "[DM→$selectedTarget]"
+                    "Command" -> if (isTargetBroadcast) "[BROADCAST]" else "[CMD→$selectedTarget]"
+                    "Config" -> if (isTargetBroadcast) "[BROADCAST]" else "[CFG→$selectedTarget]"
+                    else -> ""
+                }
+                
+                if (selectedMsgType == "Config") {
+                    onSendCommand("$prefix CFG:SF=$configSf")
+                } else if (messageText.isNotBlank()) {
                     onSendCommand("$prefix $messageText".trim())
                     messageText = ""
                 }
@@ -182,7 +233,7 @@ fun CommandPanel(
             modifier = Modifier.fillMaxWidth().height(36.dp)
         ) {
             Text(
-                text = "Send Message",
+                text = if (selectedMsgType == "Config") "Send Config" else "Send Message",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )

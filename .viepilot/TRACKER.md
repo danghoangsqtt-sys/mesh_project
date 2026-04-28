@@ -25,7 +25,7 @@
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 6.1 | Two-way Command Protocol | ✅ Done | Added ACK/CMD packet formats |
-| 6.2 | Remote Node Config | ⬜ Todo | |
+| 6.2 | Remote Node Config | ✅ Done | NVS Preferences + SF Dropdown |
 | 6.3 | OTA Firmware qua Gateway | ⬜ Todo | Chunked transfer |
 
 ### Phase 7 — Quality Assurance & Testing (0/3 tasks)
