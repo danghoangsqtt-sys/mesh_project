@@ -132,6 +132,19 @@ class MainActivity : ComponentActivity() {
                             val targetId = if (message.contains("→Node ")) {
                                 message.substringAfter("→Node ").substringBefore("]").toIntOrNull() ?: 0
                             } else 0
+                            
+                            if (message.contains("OTA:START")) {
+                                // Dummy firmware for demo
+                                val dummyFirmware = ByteArray(1024) { (it % 256).toByte() }
+                                lifecycleScope.launch(Dispatchers.IO) {
+                                    val otaManager = com.meshcommand.app.comm.OtaManager()
+                                    otaManager.startOtaUpload(targetId, dummyFirmware).collect { pkt ->
+                                        binder.sendCommand(pkt.toByteArray())
+                                    }
+                                }
+                                return@let
+                            }
+                            
                             val packet = com.meshcommand.app.comm.CommandPacket(
                                 targetNodeId = targetId,
                                 message = message
@@ -139,8 +152,6 @@ class MainActivity : ComponentActivity() {
                             binder.sendCommand(packet.toByteArray())
                             
                             val targetStr = if (targetId == 0) "Broadcast" else "Node $targetId"
-                            // Can't directly access tacticalViewModel here without fetching it, 
-                            // but we can log via the lambda
                         }
                     }
                 )

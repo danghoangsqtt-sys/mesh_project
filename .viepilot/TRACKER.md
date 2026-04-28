@@ -21,12 +21,12 @@
 | 5.4 | Compass Widget | ✅ Done | MapLibre UI settings |
 | 5.5 | GPS Accuracy Circles | ✅ Done | CircleLayer under nodes |
 
-### Phase 6 — Advanced Communication & OTA (1/3 tasks)
+### Phase 6 — Advanced Communication & OTA (3/3 tasks)
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 6.1 | Two-way Command Protocol | ✅ Done | Added ACK/CMD packet formats |
 | 6.2 | Remote Node Config | ✅ Done | NVS Preferences + SF Dropdown |
-| 6.3 | OTA Firmware qua Gateway | ⬜ Todo | Chunked transfer |
+| 6.3 | OTA Firmware qua Gateway | ✅ Done | Chunked transfer, OtaManager |
 
 ### Phase 7 — Quality Assurance & Testing (0/3 tasks)
 | # | Task | Status | Notes |

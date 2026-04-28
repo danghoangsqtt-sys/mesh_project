@@ -46,7 +46,7 @@ fun CommandPanel(
     var messageText by remember { mutableStateOf("") }
     var msgTypeExpanded by remember { mutableStateOf(false) }
     var selectedMsgType by remember { mutableStateOf("Broadcast") }
-    val msgTypes = listOf("Broadcast", "Direct", "Command", "Config")
+    val msgTypes = listOf("Broadcast", "Direct", "Command", "Config", "OTA Update")
     var targetExpanded by remember { mutableStateOf(false) }
     var selectedTarget by remember { mutableStateOf("All") }
 
@@ -112,6 +112,23 @@ fun CommandPanel(
                         }
                     }
                 }
+            }
+        } else if (selectedMsgType == "OTA Update") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MeshColors.SurfaceDark, RoundedCornerShape(4.dp))
+                    .border(1.dp, MeshColors.Border, RoundedCornerShape(4.dp))
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Firmware: mock_v2.0.bin (1KB)",
+                    color = MeshColors.TextPrimary,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace
+                )
             }
         } else {
             BasicTextField(
@@ -216,11 +233,14 @@ fun CommandPanel(
                     "Direct" -> if (isTargetBroadcast) "[BROADCAST]" else "[DM→$selectedTarget]"
                     "Command" -> if (isTargetBroadcast) "[BROADCAST]" else "[CMD→$selectedTarget]"
                     "Config" -> if (isTargetBroadcast) "[BROADCAST]" else "[CFG→$selectedTarget]"
+                    "OTA Update" -> if (isTargetBroadcast) "[BROADCAST]" else "[OTA→$selectedTarget]"
                     else -> ""
                 }
                 
                 if (selectedMsgType == "Config") {
                     onSendCommand("$prefix CFG:SF=$configSf")
+                } else if (selectedMsgType == "OTA Update") {
+                    onSendCommand("$prefix OTA:START")
                 } else if (messageText.isNotBlank()) {
                     onSendCommand("$prefix $messageText".trim())
                     messageText = ""
@@ -233,7 +253,11 @@ fun CommandPanel(
             modifier = Modifier.fillMaxWidth().height(36.dp)
         ) {
             Text(
-                text = if (selectedMsgType == "Config") "Send Config" else "Send Message",
+                text = when (selectedMsgType) {
+                    "Config" -> "Send Config"
+                    "OTA Update" -> "Start OTA Update"
+                    else -> "Send Message"
+                },
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )

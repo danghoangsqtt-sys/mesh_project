@@ -11,7 +11,8 @@ data class CommandPacket(
     val magic1: Byte = 0x5A.toByte(),
     val magic2: Byte = 0xA5.toByte(),
     val targetNodeId: Int, // 0 = broadcast
-    val message: String
+    val message: String = "",
+    val payloadBytes: ByteArray? = null
 ) {
     fun toByteArray(): ByteArray {
         val buffer = ByteBuffer.allocate(32).order(ByteOrder.LITTLE_ENDIAN)
@@ -19,7 +20,9 @@ data class CommandPacket(
         buffer.put(magic2)
         buffer.put(targetNodeId.toByte())
         
-        val msgBytes = message.toByteArray(Charsets.UTF_8).take(27).toByteArray()
+        val msgBytes = payloadBytes?.take(27)?.toByteArray() 
+            ?: message.toByteArray(Charsets.UTF_8).take(27).toByteArray()
+            
         buffer.put(msgBytes)
         
         // Pad with zeros
