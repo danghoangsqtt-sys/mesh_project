@@ -1,0 +1,33 @@
+graph TB
+    subgraph Field["Chiến trường"]
+        S1[Soldier Node 1<br/>T-Beam + Sensors]
+        S2[Soldier Node 2<br/>T-Beam + Sensors]
+        S3[Soldier Node N<br/>T-Beam + Sensors]
+    end
+
+    subgraph Gateway["Gateway Node"]
+        GW[T-Beam Gateway<br/>LoRa 433MHz<br/>GPS + OLED]
+    end
+
+    subgraph Tablet["Android Tablet"]
+        APP[Mesh Command App]
+        subgraph AppLayers["App Layers"]
+            UI[UI Layer<br/>Jetpack Compose]
+            VM[ViewModel Layer<br/>StateFlow]
+            REPO[Repository Layer]
+            DB[(Room DB<br/>SQLite)]
+            SVC[ForegroundService<br/>USB/WiFi Manager]
+        end
+        MAP[MapLibre Native<br/>Offline MBTiles]
+    end
+
+    S1 -->|LoRa 433MHz| GW
+    S2 -->|LoRa 433MHz| GW
+    S3 -->|LoRa 433MHz| GW
+    GW -->|USB OTG Serial<br/>115200 baud| SVC
+    GW -.->|WiFi AP<br/>TCP Socket<br/>Phase 2| SVC
+    SVC --> REPO
+    REPO --> DB
+    REPO --> VM
+    VM --> UI
+    UI --> MAP
