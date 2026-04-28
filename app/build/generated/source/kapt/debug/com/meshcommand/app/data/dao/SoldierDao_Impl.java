@@ -118,7 +118,7 @@ public final class SoldierDao_Impl implements SoldierDao {
   }
 
   @Override
-  public Object markOffline(final long thresholdMs, final Continuation<? super Unit> arg1) {
+  public Object markOffline(final long thresholdMs, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -139,11 +139,11 @@ public final class SoldierDao_Impl implements SoldierDao {
           __preparedStmtOfMarkOffline.release(_stmt);
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object upsert(final SoldierEntity soldier, final Continuation<? super Unit> arg1) {
+  public Object upsert(final SoldierEntity soldier, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -157,7 +157,7 @@ public final class SoldierDao_Impl implements SoldierDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override

@@ -89,7 +89,7 @@ public final class EventDao_Impl implements EventDao {
   }
 
   @Override
-  public Object insert(final EventEntity event, final Continuation<? super Unit> arg1) {
+  public Object insert(final EventEntity event, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -103,11 +103,11 @@ public final class EventDao_Impl implements EventDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object acknowledgeEvent(final long eventId, final Continuation<? super Unit> arg1) {
+  public Object acknowledgeEvent(final long eventId, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -128,11 +128,12 @@ public final class EventDao_Impl implements EventDao {
           __preparedStmtOfAcknowledgeEvent.release(_stmt);
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object deleteOlderThan(final long thresholdMs, final Continuation<? super Unit> arg1) {
+  public Object deleteOlderThan(final long thresholdMs,
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -153,7 +154,7 @@ public final class EventDao_Impl implements EventDao {
           __preparedStmtOfDeleteOlderThan.release(_stmt);
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override

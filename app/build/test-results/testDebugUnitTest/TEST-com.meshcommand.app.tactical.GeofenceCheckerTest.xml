@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.meshcommand.app.tactical.GeofenceCheckerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-04-28T08:57:47" hostname="DESKTOP-VS3IC5D" time="0.064">
+  <properties/>
+  <testcase name="encodePolygonJson encodes polygon to JSON string()" classname="com.meshcommand.app.tactical.GeofenceCheckerTest" time="0.04"/>
+  <testcase name="checkViolations returns danger zone when point is inside restricted area()" classname="com.meshcommand.app.tactical.GeofenceCheckerTest" time="0.014"/>
+  <testcase name="isPointInPolygon returns true when point is inside()" classname="com.meshcommand.app.tactical.GeofenceCheckerTest" time="0.001"/>
+  <testcase name="parsePolygonJson parses valid JSON correctly()" classname="com.meshcommand.app.tactical.GeofenceCheckerTest" time="0.002"/>
+  <testcase name="isPointInPolygon returns false when point is outside()" classname="com.meshcommand.app.tactical.GeofenceCheckerTest" time="0.001"/>
+  <testcase name="checkViolations returns safe zone when point leaves all safe areas()" classname="com.meshcommand.app.tactical.GeofenceCheckerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

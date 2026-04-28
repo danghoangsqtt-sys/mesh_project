@@ -4,7 +4,7 @@
             "outputFile": "com.meshcommand.app-mergeDebugResources-59:/values-v21/values-v21.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\56f8ea80cfb2f2201cc6761659596fbf\\transformed\\core-1.13.1\\res\\values-v21\\values-v21.xml",
+                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\fef5f77b1b2ab33f0efab9cfaf62757b\\transformed\\core-1.13.1\\res\\values-v21\\values-v21.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,13",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4",

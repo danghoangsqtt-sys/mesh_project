@@ -4,24 +4,7 @@
             "outputFile": "com.meshcommand.app-mergeDebugResources-59:/values-ms/values-ms.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\56f8ea80cfb2f2201cc6761659596fbf\\transformed\\core-1.13.1\\res\\values-ms\\values-ms.xml",
-                    "from": {
-                        "startLines": "2,3,4,5,6,7,8,9",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,150,252,349,459,565,683,798",
-                        "endColumns": "94,101,96,109,105,117,114,100",
-                        "endOffsets": "145,247,344,454,560,678,793,894"
-                    },
-                    "to": {
-                        "startLines": "2,3,4,5,6,7,8,79",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "105,200,302,399,509,615,733,8232",
-                        "endColumns": "94,101,96,109,105,117,114,100",
-                        "endOffsets": "195,297,394,504,610,728,843,8328"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\26c2ef749935fd83f903a311c59e4fd1\\transformed\\jetified-ui-release\\res\\values-ms\\values-ms.xml",
+                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\e72761c1e4189c2c3558cffe46732438\\transformed\\jetified-ui-release\\res\\values-ms\\values-ms.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -38,7 +21,24 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\297fb0d2627f2d1843ed19bc89c87532\\transformed\\jetified-material3-release\\res\\values-ms\\values-ms.xml",
+                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\fef5f77b1b2ab33f0efab9cfaf62757b\\transformed\\core-1.13.1\\res\\values-ms\\values-ms.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,150,252,349,459,565,683,798",
+                        "endColumns": "94,101,96,109,105,117,114,100",
+                        "endOffsets": "145,247,344,454,560,678,793,894"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,79",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "105,200,302,399,509,615,733,8232",
+                        "endColumns": "94,101,96,109,105,117,114,100",
+                        "endOffsets": "195,297,394,504,610,728,843,8328"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\377a5de199d99933e1ea87d5e85944f4\\transformed\\jetified-material3-release\\res\\values-ms\\values-ms.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -55,7 +55,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\250bc14b26cc0ec1f1804427c055d0b9\\transformed\\jetified-foundation-release\\res\\values-ms\\values-ms.xml",
+                    "source": "C:\\Users\\dangh\\.gradle\\caches\\transforms-4\\d3d9ea245607ad5535a84f42e373401a\\transformed\\jetified-foundation-release\\res\\values-ms\\values-ms.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",

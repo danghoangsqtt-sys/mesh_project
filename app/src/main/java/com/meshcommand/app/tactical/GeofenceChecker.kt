@@ -56,4 +56,45 @@ object GeofenceChecker {
     fun encodePolygonJson(points: List<LatLon>): String {
         return points.joinToString(",", "[", "]") { "[${it.lat},${it.lon}]" }
     }
+
+    /**
+     * Checks if a given coordinate violates any active geofences.
+     * Rule: Inside RESTRICTED = Violation. Outside all SAFE (if any exist) = Violation.
+     */
+    fun checkViolations(
+        lat: Double,
+        lon: Double,
+        activeGeofences: List<com.meshcommand.app.data.entity.GeofenceEntity>
+    ): List<com.meshcommand.app.data.entity.GeofenceEntity> {
+        val point = LatLon(lat, lon)
+        val violations = mutableListOf<com.meshcommand.app.data.entity.GeofenceEntity>()
+        var inAnySafeZone = false
+        var hasSafeZones = false
+
+        for (fence in activeGeofences) {
+            val polygon = parsePolygonJson(fence.pointsJson)
+            val inside = isPointInPolygon(point, polygon)
+
+            if (fence.zoneType == com.meshcommand.app.data.entity.GeofenceEntity.TYPE_RESTRICTED) {
+                if (inside) {
+                    violations.add(fence)
+                }
+            } else if (fence.zoneType == com.meshcommand.app.data.entity.GeofenceEntity.TYPE_SAFE) {
+                hasSafeZones = true
+                if (inside) {
+                    inAnySafeZone = true
+                }
+            }
+        }
+
+        if (hasSafeZones && !inAnySafeZone) {
+            val firstSafe = activeGeofences.firstOrNull { it.zoneType == com.meshcommand.app.data.entity.GeofenceEntity.TYPE_SAFE }
+            if (firstSafe != null) {
+                // If they are outside all safe zones, add one as the violation reason
+                violations.add(firstSafe)
+            }
+        }
+
+        return violations
+    }
 }

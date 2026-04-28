@@ -1,7 +1,7 @@
 package com.meshcommand.app.data;
 
 @javax.inject.Singleton()
-@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000d\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\b\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\t\n\u0002\b\u0006\n\u0002\u0018\u0002\n\u0002\b\u0007\n\u0002\u0010\u000e\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0003\b\u0007\u0018\u0000 52\u00020\u0001:\u00015B\u001f\b\u0007\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\u0006\u0010\u0006\u001a\u00020\u0007\u00a2\u0006\u0002\u0010\bJ\u0016\u0010\u001b\u001a\u00020\u001c2\u0006\u0010\u001d\u001a\u00020\u001eH\u0086@\u00a2\u0006\u0002\u0010\u001fJ\u000e\u0010 \u001a\u00020\u001cH\u0086@\u00a2\u0006\u0002\u0010!J\u0018\u0010\"\u001a\u00020\u001c2\b\b\u0002\u0010#\u001a\u00020\u001eH\u0086@\u00a2\u0006\u0002\u0010\u001fJ\u001a\u0010$\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020%0\u000b0\n2\u0006\u0010&\u001a\u00020\u001eJ\u001a\u0010\'\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\u00170\u000b0\n2\u0006\u0010(\u001a\u00020\u0012J\u0016\u0010)\u001a\n\u0012\u0006\u0012\u0004\u0018\u00010\f0\n2\u0006\u0010(\u001a\u00020\u0012J\"\u0010*\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020%0\u000b0\n2\u0006\u0010(\u001a\u00020\u00122\u0006\u0010&\u001a\u00020\u001eJ4\u0010+\u001a\u00020\u001c2\u0006\u0010,\u001a\u00020-2\u0006\u0010.\u001a\u00020-2\b\b\u0002\u0010/\u001a\u00020\u00122\n\b\u0002\u0010(\u001a\u0004\u0018\u00010\u0012H\u0086@\u00a2\u0006\u0002\u00100J\u0016\u00101\u001a\u00020\u001c2\u0006\u00102\u001a\u000203H\u0086@\u00a2\u0006\u0002\u00104R\u001d\u0010\t\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\f0\u000b0\n\u00a2\u0006\b\n\u0000\u001a\u0004\b\r\u0010\u000eR\u001d\u0010\u000f\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\f0\u000b0\n\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0010\u0010\u000eR\u000e\u0010\u0004\u001a\u00020\u0005X\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u0017\u0010\u0011\u001a\b\u0012\u0004\u0012\u00020\u00120\n\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0013\u0010\u000eR\u001d\u0010\u0014\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\f0\u000b0\n\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0015\u0010\u000eR\u000e\u0010\u0006\u001a\u00020\u0007X\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u001d\u0010\u0016\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\u00170\u000b0\n\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0018\u0010\u000eR\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u001d\u0010\u0019\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\u00170\u000b0\n\u00a2\u0006\b\n\u0000\u001a\u0004\b\u001a\u0010\u000e\u00a8\u00066"}, d2 = {"Lcom/meshcommand/app/data/SoldierRepository;", "", "soldierDao", "Lcom/meshcommand/app/data/dao/SoldierDao;", "eventDao", "Lcom/meshcommand/app/data/dao/EventDao;", "positionHistoryDao", "Lcom/meshcommand/app/data/dao/PositionHistoryDao;", "(Lcom/meshcommand/app/data/dao/SoldierDao;Lcom/meshcommand/app/data/dao/EventDao;Lcom/meshcommand/app/data/dao/PositionHistoryDao;)V", "allSoldiers", "Lkotlinx/coroutines/flow/Flow;", "", "Lcom/meshcommand/app/data/entity/SoldierEntity;", "getAllSoldiers", "()Lkotlinx/coroutines/flow/Flow;", "criticalSoldiers", "getCriticalSoldiers", "onlineCount", "", "getOnlineCount", "onlineSoldiers", "getOnlineSoldiers", "recentEvents", "Lcom/meshcommand/app/data/entity/EventEntity;", "getRecentEvents", "unacknowledgedAlerts", "getUnacknowledgedAlerts", "acknowledgeAlert", "", "eventId", "", "(JLkotlin/coroutines/Continuation;)Ljava/lang/Object;", "checkTimeouts", "(Lkotlin/coroutines/Continuation;)Ljava/lang/Object;", "cleanupOldEvents", "maxAgeMs", "getAllTrails", "Lcom/meshcommand/app/data/entity/PositionHistoryEntity;", "sinceMs", "getEventsForNode", "nodeId", "getSoldierById", "getTrailForNode", "logEvent", "eventType", "", "message", "severity", "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;", "processPacket", "packet", "Lcom/meshcommand/app/comm/SoldierPacket;", "(Lcom/meshcommand/app/comm/SoldierPacket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;", "Companion", "app_debug"})
+@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\u0084\u0001\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010!\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0010\b\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\u0010\u000e\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\t\n\u0002\b\t\n\u0002\u0018\u0002\n\u0002\b\f\n\u0002\u0018\u0002\n\u0002\b\u0004\b\u0007\u0018\u0000 F2\u00020\u0001:\u0001FB\'\b\u0007\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\u0006\u0010\u0006\u001a\u00020\u0007\u0012\u0006\u0010\b\u001a\u00020\t\u00a2\u0006\u0002\u0010\nJ\u0016\u0010)\u001a\u00020*2\u0006\u0010+\u001a\u00020,H\u0086@\u00a2\u0006\u0002\u0010-J\u000e\u0010.\u001a\u00020*H\u0086@\u00a2\u0006\u0002\u0010/J\u0018\u00100\u001a\u00020*2\b\b\u0002\u00101\u001a\u00020,H\u0086@\u00a2\u0006\u0002\u0010-J\u0016\u00102\u001a\u00020*2\u0006\u00103\u001a\u00020\u000eH\u0086@\u00a2\u0006\u0002\u00104J\u001a\u00105\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u0002060\r0\f2\u0006\u00107\u001a\u00020,J\u001a\u00108\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020#0\r0\f2\u0006\u00109\u001a\u00020\u0019J\u0016\u0010:\u001a\n\u0012\u0006\u0012\u0004\u0018\u00010\u00140\f2\u0006\u00109\u001a\u00020\u0019J\"\u0010;\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u0002060\r0\f2\u0006\u00109\u001a\u00020\u00192\u0006\u00107\u001a\u00020,J4\u0010<\u001a\u00020*2\u0006\u0010=\u001a\u00020\u001f2\u0006\u0010>\u001a\u00020\u001f2\b\b\u0002\u0010?\u001a\u00020\u00192\n\b\u0002\u00109\u001a\u0004\u0018\u00010\u0019H\u0086@\u00a2\u0006\u0002\u0010@J\u0016\u0010A\u001a\u00020*2\u0006\u0010B\u001a\u00020CH\u0086@\u00a2\u0006\u0002\u0010DJ\u0016\u0010E\u001a\u00020,2\u0006\u00103\u001a\u00020\u000eH\u0086@\u00a2\u0006\u0002\u00104R\u001d\u0010\u000b\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\u000e0\r0\f\u00a2\u0006\b\n\u0000\u001a\u0004\b\u000f\u0010\u0010R\u0014\u0010\u0011\u001a\b\u0012\u0004\u0012\u00020\u000e0\u0012X\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u001d\u0010\u0013\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\u00140\r0\f\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0015\u0010\u0010R\u001d\u0010\u0016\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\u00140\r0\f\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0017\u0010\u0010R\u000e\u0010\u0004\u001a\u00020\u0005X\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u000e\u0010\b\u001a\u00020\tX\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u0017\u0010\u0018\u001a\b\u0012\u0004\u0012\u00020\u00190\f\u00a2\u0006\b\n\u0000\u001a\u0004\b\u001a\u0010\u0010R\u001d\u0010\u001b\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020\u00140\r0\f\u00a2\u0006\b\n\u0000\u001a\u0004\b\u001c\u0010\u0010R\u0017\u0010\u001d\u001a\b\u0012\u0004\u0012\u00020\u001f0\u001e\u00a2\u0006\b\n\u0000\u001a\u0004\b \u0010!R\u000e\u0010\u0006\u001a\u00020\u0007X\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u001d\u0010\"\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020#0\r0\f\u00a2\u0006\b\n\u0000\u001a\u0004\b$\u0010\u0010R\u000e\u0010%\u001a\u00020&X\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u001d\u0010\'\u001a\u000e\u0012\n\u0012\b\u0012\u0004\u0012\u00020#0\r0\f\u00a2\u0006\b\n\u0000\u001a\u0004\b(\u0010\u0010\u00a8\u0006G"}, d2 = {"Lcom/meshcommand/app/data/SoldierRepository;", "", "soldierDao", "Lcom/meshcommand/app/data/dao/SoldierDao;", "eventDao", "Lcom/meshcommand/app/data/dao/EventDao;", "positionHistoryDao", "Lcom/meshcommand/app/data/dao/PositionHistoryDao;", "geofenceDao", "Lcom/meshcommand/app/data/dao/GeofenceDao;", "(Lcom/meshcommand/app/data/dao/SoldierDao;Lcom/meshcommand/app/data/dao/EventDao;Lcom/meshcommand/app/data/dao/PositionHistoryDao;Lcom/meshcommand/app/data/dao/GeofenceDao;)V", "activeGeofences", "Lkotlinx/coroutines/flow/Flow;", "", "Lcom/meshcommand/app/data/entity/GeofenceEntity;", "getActiveGeofences", "()Lkotlinx/coroutines/flow/Flow;", "activeGeofencesCache", "", "allSoldiers", "Lcom/meshcommand/app/data/entity/SoldierEntity;", "getAllSoldiers", "criticalSoldiers", "getCriticalSoldiers", "onlineCount", "", "getOnlineCount", "onlineSoldiers", "getOnlineSoldiers", "outgoingCommands", "Lkotlinx/coroutines/flow/MutableSharedFlow;", "", "getOutgoingCommands", "()Lkotlinx/coroutines/flow/MutableSharedFlow;", "recentEvents", "Lcom/meshcommand/app/data/entity/EventEntity;", "getRecentEvents", "repositoryScope", "Lkotlinx/coroutines/CoroutineScope;", "unacknowledgedAlerts", "getUnacknowledgedAlerts", "acknowledgeAlert", "", "eventId", "", "(JLkotlin/coroutines/Continuation;)Ljava/lang/Object;", "checkTimeouts", "(Lkotlin/coroutines/Continuation;)Ljava/lang/Object;", "cleanupOldEvents", "maxAgeMs", "deleteGeofence", "geofence", "(Lcom/meshcommand/app/data/entity/GeofenceEntity;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;", "getAllTrails", "Lcom/meshcommand/app/data/entity/PositionHistoryEntity;", "sinceMs", "getEventsForNode", "nodeId", "getSoldierById", "getTrailForNode", "logEvent", "eventType", "message", "severity", "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;", "processPacket", "packet", "Lcom/meshcommand/app/comm/SoldierPacket;", "(Lcom/meshcommand/app/comm/SoldierPacket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;", "saveGeofence", "Companion", "app_debug"})
 public final class SoldierRepository {
     @org.jetbrains.annotations.NotNull()
     private final com.meshcommand.app.data.dao.SoldierDao soldierDao = null;
@@ -9,6 +9,8 @@ public final class SoldierRepository {
     private final com.meshcommand.app.data.dao.EventDao eventDao = null;
     @org.jetbrains.annotations.NotNull()
     private final com.meshcommand.app.data.dao.PositionHistoryDao positionHistoryDao = null;
+    @org.jetbrains.annotations.NotNull()
+    private final com.meshcommand.app.data.dao.GeofenceDao geofenceDao = null;
     @org.jetbrains.annotations.NotNull()
     private static final java.lang.String TAG = "SoldierRepository";
     @org.jetbrains.annotations.NotNull()
@@ -24,13 +26,22 @@ public final class SoldierRepository {
     @org.jetbrains.annotations.NotNull()
     private final kotlinx.coroutines.flow.Flow<java.util.List<com.meshcommand.app.data.entity.EventEntity>> unacknowledgedAlerts = null;
     @org.jetbrains.annotations.NotNull()
+    private final kotlinx.coroutines.flow.MutableSharedFlow<java.lang.String> outgoingCommands = null;
+    @org.jetbrains.annotations.NotNull()
+    private final kotlinx.coroutines.flow.Flow<java.util.List<com.meshcommand.app.data.entity.GeofenceEntity>> activeGeofences = null;
+    @org.jetbrains.annotations.NotNull()
+    private final kotlinx.coroutines.CoroutineScope repositoryScope = null;
+    @org.jetbrains.annotations.NotNull()
+    private final java.util.List<com.meshcommand.app.data.entity.GeofenceEntity> activeGeofencesCache = null;
+    @org.jetbrains.annotations.NotNull()
     public static final com.meshcommand.app.data.SoldierRepository.Companion Companion = null;
     
     @javax.inject.Inject()
     public SoldierRepository(@org.jetbrains.annotations.NotNull()
     com.meshcommand.app.data.dao.SoldierDao soldierDao, @org.jetbrains.annotations.NotNull()
     com.meshcommand.app.data.dao.EventDao eventDao, @org.jetbrains.annotations.NotNull()
-    com.meshcommand.app.data.dao.PositionHistoryDao positionHistoryDao) {
+    com.meshcommand.app.data.dao.PositionHistoryDao positionHistoryDao, @org.jetbrains.annotations.NotNull()
+    com.meshcommand.app.data.dao.GeofenceDao geofenceDao) {
         super();
     }
     
@@ -81,6 +92,30 @@ public final class SoldierRepository {
     
     @org.jetbrains.annotations.NotNull()
     public final kotlinx.coroutines.flow.Flow<java.util.List<com.meshcommand.app.data.entity.PositionHistoryEntity>> getAllTrails(long sinceMs) {
+        return null;
+    }
+    
+    @org.jetbrains.annotations.NotNull()
+    public final kotlinx.coroutines.flow.MutableSharedFlow<java.lang.String> getOutgoingCommands() {
+        return null;
+    }
+    
+    @org.jetbrains.annotations.NotNull()
+    public final kotlinx.coroutines.flow.Flow<java.util.List<com.meshcommand.app.data.entity.GeofenceEntity>> getActiveGeofences() {
+        return null;
+    }
+    
+    @org.jetbrains.annotations.Nullable()
+    public final java.lang.Object saveGeofence(@org.jetbrains.annotations.NotNull()
+    com.meshcommand.app.data.entity.GeofenceEntity geofence, @org.jetbrains.annotations.NotNull()
+    kotlin.coroutines.Continuation<? super java.lang.Long> $completion) {
+        return null;
+    }
+    
+    @org.jetbrains.annotations.Nullable()
+    public final java.lang.Object deleteGeofence(@org.jetbrains.annotations.NotNull()
+    com.meshcommand.app.data.entity.GeofenceEntity geofence, @org.jetbrains.annotations.NotNull()
+    kotlin.coroutines.Continuation<? super kotlin.Unit> $completion) {
         return null;
     }
     

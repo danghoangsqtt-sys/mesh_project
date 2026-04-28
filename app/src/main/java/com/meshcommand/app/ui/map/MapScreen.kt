@@ -5,15 +5,26 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.meshcommand.app.data.entity.PositionHistoryEntity
 import com.meshcommand.app.data.entity.SoldierEntity
@@ -37,6 +48,7 @@ import org.maplibre.geojson.Point
 import com.google.gson.JsonObject
 import java.io.File
 import java.util.Locale
+import org.json.JSONArray
 
 @Composable
 fun MapScreen(
@@ -48,6 +60,11 @@ fun MapScreen(
     val gatewayPos by viewModel.gatewayPosition.collectAsState()
     val cameraTarget by viewModel.cameraTarget.collectAsState()
     val trails by viewModel.allTrails.collectAsState()
+
+    val savedGeofences by viewModel.savedGeofences.collectAsState()
+    val isDrawing by viewModel.isDrawingMode.collectAsState()
+    val drawPoints by viewModel.currentDrawPoints.collectAsState()
+    val downloadProgress by viewModel.downloadProgress.collectAsState()
 
     // Initialize MapLibre once
     remember { MapLibre.getInstance(context) }
@@ -69,25 +86,142 @@ fun MapScreen(
         }
     }
 
-    AndroidView(
-        factory = { ctx ->
-            mapView.apply {
-                getMapAsync { map ->
-                    setupMap(map, ctx, soldiers, gatewayPos)
+    Box(modifier = modifier.fillMaxSize()) {
+        AndroidView(
+            factory = { ctx ->
+                mapView.apply {
+                    getMapAsync { map ->
+                        setupMap(map, ctx, soldiers, gatewayPos)
+                        map.addOnMapClickListener { latLng ->
+                            viewModel.onMapClick(latLng.latitude, latLng.longitude)
+                            true
+                        }
+                    }
+                }
+            },
+            update = { view ->
+                view.getMapAsync { map ->
+                    if (map.style != null && map.style!!.isFullyLoaded) {
+                        updateMarkers(map, soldiers, gatewayPos, viewModel)
+                        updateGeoJsonSources(map, soldiers)
+                        drawTrails(map, trails)
+                        drawGeofences(map, savedGeofences, drawPoints)
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // Download Progress Overlay
+        if (downloadProgress != null) {
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(16.dp)
+                    .background(androidx.compose.ui.graphics.Color(0xCC000000), shape = RoundedCornerShape(8.dp))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Downloading Map: ${downloadProgress}%",
+                    color = androidx.compose.ui.graphics.Color.White,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                )
+            }
+        }
+
+        // Overlay UI for Geofencing
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (!isDrawing) {
+                Button(onClick = { viewModel.toggleDrawingMode() }) {
+                    Text("Draw Geofence")
+                }
+                Button(
+                    onClick = {
+                        mapView.getMapAsync { map ->
+                            val bounds = map.projection.visibleRegion.latLngBounds
+                            val minZoom = map.cameraPosition.zoom
+                            val maxZoom = minZoom + 3.0 // 3 extra levels for detail
+                            val pixelRatio = context.resources.displayMetrics.density
+                            val definition = org.maplibre.android.offline.OfflineTilePyramidRegionDefinition(
+                                map.style?.uri ?: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+                                bounds, minZoom, maxZoom, pixelRatio
+                            )
+                            val metadata = "{\"regionName\":\"Tactical Region\"}".toByteArray()
+
+                            viewModel.setDownloadProgress(0)
+                            org.maplibre.android.offline.OfflineManager.getInstance(context)
+                                .createOfflineRegion(
+                                    definition,
+                                    metadata,
+                                    object : org.maplibre.android.offline.OfflineManager.CreateOfflineRegionCallback {
+                                        override fun onCreate(offlineRegion: org.maplibre.android.offline.OfflineRegion) {
+                                            offlineRegion.setDownloadState(org.maplibre.android.offline.OfflineRegion.STATE_ACTIVE)
+                                            offlineRegion.setObserver(object : org.maplibre.android.offline.OfflineRegion.OfflineRegionObserver {
+                                                override fun onStatusChanged(status: org.maplibre.android.offline.OfflineRegionStatus) {
+                                                    val percentage = if (status.requiredResourceCount >= 0L) {
+                                                        (100.0 * status.completedResourceCount / status.requiredResourceCount).toInt()
+                                                    } else {
+                                                        0
+                                                    }
+                                                    viewModel.setDownloadProgress(percentage)
+                                                    if (status.isComplete) {
+                                                        viewModel.setDownloadProgress(null)
+                                                        android.widget.Toast.makeText(context, "Offline Map Saved!", android.widget.Toast.LENGTH_SHORT).show()
+                                                    }
+                                                }
+
+                                                override fun onError(error: org.maplibre.android.offline.OfflineRegionError) {
+                                                    viewModel.setDownloadProgress(null)
+                                                    android.widget.Toast.makeText(context, "Map Download Error: ${error.reason}", android.widget.Toast.LENGTH_SHORT).show()
+                                                }
+
+                                                override fun mapboxTileCountLimitExceeded(limit: Long) {
+                                                    viewModel.setDownloadProgress(null)
+                                                }
+                                            })
+                                        }
+
+                                        override fun onError(error: String) {
+                                            viewModel.setDownloadProgress(null)
+                                        }
+                                    }
+                                )
+                        }
+                    },
+                    enabled = downloadProgress == null
+                ) {
+                    Text("Download Map")
+                }
+            } else {
+                Button(
+                    onClick = { viewModel.toggleDrawingMode() },
+                    colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.Gray)
+                ) {
+                    Text("Cancel")
+                }
+                
+                if (drawPoints.size >= 3) {
+                    Button(
+                        onClick = { viewModel.saveGeofence("Safe Zone", com.meshcommand.app.data.entity.GeofenceEntity.TYPE_SAFE) },
+                        colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFF4CAF50))
+                    ) {
+                        Text("Save Safe")
+                    }
+                    Button(
+                        onClick = { viewModel.saveGeofence("Danger Zone", com.meshcommand.app.data.entity.GeofenceEntity.TYPE_RESTRICTED) },
+                        colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFF44336))
+                    ) {
+                        Text("Save Danger")
+                    }
                 }
             }
-        },
-        update = { view ->
-            view.getMapAsync { map ->
-                if (map.style != null && map.style!!.isFullyLoaded) {
-                    updateMarkers(map, soldiers, gatewayPos, viewModel)
-                    updateGeoJsonSources(map, soldiers)
-                    drawTrails(map, trails)
-                }
-            }
-        },
-        modifier = modifier.fillMaxSize()
-    )
+        }
+    }
 
     DisposableEffect(Unit) {
         mapView.onStart()
@@ -112,7 +246,7 @@ private fun setupMap(
     val styleUri = if (mbtilesFile != null) {
         "asset://map_style_military.json"
     } else {
-        "asset://map_style_military.json"
+        "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
     }
 
     map.setStyle(Style.Builder().fromUri(styleUri)) { style ->
@@ -123,8 +257,8 @@ private fun setupMap(
         style.addImage("marker-offline", createCircleMarker(Color.parseColor("#9E9E9E"), 20))
         style.addImage("marker-gateway", createStarMarker(Color.parseColor("#2196F3"), 32))
 
-        // Phase 5.3: 3D Terrain
-        style.addSource(RasterDemSource("terrain-source", "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"))
+        // Phase 5.3: 3D Terrain (Disabled due to 404 dead link)
+        // style.addSource(RasterDemSource("terrain-source", "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"))
         
         setupAdvancedLayers(style)
 
@@ -283,6 +417,57 @@ private fun drawTrails(
             .color(color)
             .width(3f)
 
+        map.addPolyline(polylineOptions)
+    }
+}
+
+private fun drawGeofences(
+    map: MapLibreMap,
+    savedGeofences: List<com.meshcommand.app.data.entity.GeofenceEntity>,
+    currentDrawPoints: List<Pair<Double, Double>>
+) {
+    map.polygons.forEach { map.removePolygon(it) }
+
+    // Draw saved geofences
+    for (geofence in savedGeofences) {
+        try {
+            val jsonArray = JSONArray(geofence.pointsJson)
+            val points = mutableListOf<LatLng>()
+            for (i in 0 until jsonArray.length()) {
+                val pt = jsonArray.getJSONArray(i)
+                points.add(LatLng(pt.getDouble(0), pt.getDouble(1)))
+            }
+            if (points.size >= 3) {
+                val color = if (geofence.zoneType == com.meshcommand.app.data.entity.GeofenceEntity.TYPE_RESTRICTED) {
+                    Color.argb(100, 244, 67, 54) // Translucent red
+                } else {
+                    Color.argb(100, 76, 175, 80) // Translucent green
+                }
+                
+                val polyOptions = org.maplibre.android.annotations.PolygonOptions()
+                    .addAll(points)
+                    .fillColor(color)
+                map.addPolygon(polyOptions)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    // Draw current drawing points
+    if (currentDrawPoints.size >= 3) {
+        val points = currentDrawPoints.map { LatLng(it.first, it.second) }
+        val polyOptions = org.maplibre.android.annotations.PolygonOptions()
+            .addAll(points)
+            .fillColor(Color.argb(120, 255, 193, 7)) // Yellow draft
+        map.addPolygon(polyOptions)
+    } else if (currentDrawPoints.isNotEmpty()) {
+        // Draw draft lines if less than 3 points
+        val points = currentDrawPoints.map { LatLng(it.first, it.second) }
+        val polylineOptions = org.maplibre.android.annotations.PolylineOptions()
+            .addAll(points)
+            .color(Color.YELLOW)
+            .width(3f)
         map.addPolyline(polylineOptions)
     }
 }

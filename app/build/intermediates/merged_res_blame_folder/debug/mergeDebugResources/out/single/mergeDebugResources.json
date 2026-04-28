@@ -1,6 +1,10 @@
 [
     {
-        "merged": "com.meshcommand.app-debug-61:/xml_device_filter.xml.flat",
-        "source": "com.meshcommand.app-main-63:/xml/device_filter.xml"
+        "merged": "com.meshcommand.app-debug-61:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.meshcommand.app-main-63:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\dangh\\.gradle\\daemon\\8.7\\com.meshcommand.app-debug-61:\\xml_device_filter.xml.flat",
+        "source": "C:\\Users\\dangh\\.gradle\\daemon\\8.7\\com.meshcommand.app-main-63:\\xml\\device_filter.xml"
     }
 ]

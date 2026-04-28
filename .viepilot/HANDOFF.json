@@ -1,70 +1,17 @@
 {
-  "project": "mesh_lilygo_app_android",
-  "projectName": "Mesh Command",
-  "version": "0.1.0-dev",
-  "phase": "Phase 1",
-  "phaseName": "Core Command Center",
-  "status": "in_progress",
-  "totalTasks": 20,
-  "completedTasks": 20,
-  "currentTask": null,
-  "techStack": {
-    "platform": "Android",
-    "language": "Kotlin",
-    "minSdk": 29,
-    "targetSdk": 35,
-    "ui": "Jetpack Compose",
-    "architecture": "MVVM + Repository",
-    "di": "Hilt",
-    "database": "Room",
-    "map": "MapLibre Native",
-    "serial": "usb-serial-for-android",
-    "async": "Coroutines + Flow",
-    "build": "Gradle KTS + Version Catalog"
-  },
-  "phases": [
-    {
-      "id": 1,
-      "name": "Core Command Center",
-      "tasks": 8,
-      "completed": 0,
-      "status": "not_started"
-    },
-    {
-      "id": 2,
-      "name": "Enhanced Situational Awareness",
-      "tasks": 6,
-      "completed": 0,
-      "status": "not_started"
-    },
-    {
-      "id": 3,
-      "name": "Advanced Tactical Features",
-      "tasks": 6,
-      "completed": 0,
-      "status": "not_started"
-    }
-  ],
-  "dependencies": {
-    "org.maplibre.gl:android-sdk": "11.x",
-    "com.github.mik3y:usb-serial-for-android": "3.9+",
-    "androidx.lifecycle:lifecycle-viewmodel-ktx": "2.8+",
-    "androidx.room:room-runtime": "2.6+",
-    "org.jetbrains.kotlinx:kotlinx-coroutines-android": "1.8+",
-    "com.google.android.material:material": "1.12+",
-    "com.google.dagger:hilt-android": "2.51+"
-  },
-  "artifacts": {
-    "AI-GUIDE": ".viepilot/android-app/AI-GUIDE.md",
-    "PROJECT-META": ".viepilot/android-app/PROJECT-META.md",
-    "ARCHITECTURE": ".viepilot/android-app/ARCHITECTURE.md",
-    "PROJECT-CONTEXT": ".viepilot/android-app/PROJECT-CONTEXT.md",
-    "SYSTEM-RULES": ".viepilot/android-app/SYSTEM-RULES.md",
-    "ROADMAP": ".viepilot/android-app/ROADMAP.md",
-    "TRACKER": ".viepilot/android-app/TRACKER.md",
-    "DATABASE-SCHEMA": ".viepilot/android-app/schemas/database-schema.sql"
-  },
-  "brainstormSource": "docs/brainstorm/session-2026-04-27-android-app.md",
-  "crystallizedAt": "2026-04-27T19:50:00+07:00",
-  "parentProject": "firmware_mesh_lilygo"
+  "version": "1.0",
+  "timestamp": "2026-04-28T18:05:00+07:00",
+  "phase": "10",
+  "phase_name": "UI Enhancements",
+  "task": "ENH-003",
+  "total_tasks": "1",
+  "status": "paused",
+  "completed_tasks": ["FEAT-002 (Offline Map & Icon)"],
+  "remaining_tasks": ["ENH-003 (Tactical Panel Scroll, Node Status, Event Log)"],
+  "blockers": ["Sai đường dẫn file `TacticalPanel.kt` khi cố gắng đọc/chỉnh sửa mã nguồn Compose. Cần tìm file gốc chứa giao diện cột bên phải."],
+  "human_actions_pending": [],
+  "decisions": ["Sử dụng vp-pause để ngưng thực thi ngay sau khi phát hiện lỗi không tìm thấy file, giữ nguyên hiện trạng để phân tích sau."],
+  "uncommitted_files": ["Các thay đổi trong `TRACKER.md`, `ROADMAP.md` (nếu có), `FEAT-002.md`, `ENH-003.md`, App Icon mới."],
+  "next_action": "Tìm kiếm file giao diện đúng chứa Tactical Panel (có thể nằm trong `MapScreen.kt` hoặc thư mục khác) để thực thi thêm Scroll và bổ sung UI (Node Status, Event Log).",
+  "context_notes": "Milestone 2 (Phase 9) đã thành công rực rỡ với bản đồ Offline và Icon xịn. Phần tiếp theo chỉ thuần tuý tinh chỉnh UI (Compose) để thêm scrollbar và bảng dữ liệu."
 }

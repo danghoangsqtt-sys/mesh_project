@@ -10,9 +10,11 @@ import androidx.lifecycle.ViewModel;
 import com.meshcommand.app.data.MeshDatabase;
 import com.meshcommand.app.data.SoldierRepository;
 import com.meshcommand.app.data.dao.EventDao;
+import com.meshcommand.app.data.dao.GeofenceDao;
 import com.meshcommand.app.data.dao.PositionHistoryDao;
 import com.meshcommand.app.data.dao.SoldierDao;
 import com.meshcommand.app.di.AppModule_ProvideEventDaoFactory;
+import com.meshcommand.app.di.AppModule_ProvideGeofenceDaoFactory;
 import com.meshcommand.app.di.AppModule_ProvideMeshDatabaseFactory;
 import com.meshcommand.app.di.AppModule_ProvidePositionHistoryDaoFactory;
 import com.meshcommand.app.di.AppModule_ProvideSoldierDaoFactory;
@@ -402,15 +404,15 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
-      static String com_meshcommand_app_ui_tactical_TacticalViewModel = "com.meshcommand.app.ui.tactical.TacticalViewModel";
-
       static String com_meshcommand_app_ui_map_MapViewModel = "com.meshcommand.app.ui.map.MapViewModel";
 
-      @KeepFieldType
-      TacticalViewModel com_meshcommand_app_ui_tactical_TacticalViewModel2;
+      static String com_meshcommand_app_ui_tactical_TacticalViewModel = "com.meshcommand.app.ui.tactical.TacticalViewModel";
 
       @KeepFieldType
       MapViewModel com_meshcommand_app_ui_map_MapViewModel2;
+
+      @KeepFieldType
+      TacticalViewModel com_meshcommand_app_ui_tactical_TacticalViewModel2;
     }
   }
 
@@ -454,15 +456,15 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
-      static String com_meshcommand_app_ui_map_MapViewModel = "com.meshcommand.app.ui.map.MapViewModel";
-
       static String com_meshcommand_app_ui_tactical_TacticalViewModel = "com.meshcommand.app.ui.tactical.TacticalViewModel";
 
-      @KeepFieldType
-      MapViewModel com_meshcommand_app_ui_map_MapViewModel2;
+      static String com_meshcommand_app_ui_map_MapViewModel = "com.meshcommand.app.ui.map.MapViewModel";
 
       @KeepFieldType
       TacticalViewModel com_meshcommand_app_ui_tactical_TacticalViewModel2;
+
+      @KeepFieldType
+      MapViewModel com_meshcommand_app_ui_map_MapViewModel2;
     }
 
     private static final class SwitchingProvider<T> implements Provider<T> {
@@ -598,6 +600,10 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
       return AppModule_ProvidePositionHistoryDaoFactory.providePositionHistoryDao(provideMeshDatabaseProvider.get());
     }
 
+    private GeofenceDao geofenceDao() {
+      return AppModule_ProvideGeofenceDaoFactory.provideGeofenceDao(provideMeshDatabaseProvider.get());
+    }
+
     @SuppressWarnings("unchecked")
     private void initialize(final ApplicationContextModule applicationContextModuleParam) {
       this.provideMeshDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<MeshDatabase>(singletonCImpl, 1));
@@ -638,7 +644,7 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
       public T get() {
         switch (id) {
           case 0: // com.meshcommand.app.data.SoldierRepository 
-          return (T) new SoldierRepository(singletonCImpl.soldierDao(), singletonCImpl.eventDao(), singletonCImpl.positionHistoryDao());
+          return (T) new SoldierRepository(singletonCImpl.soldierDao(), singletonCImpl.eventDao(), singletonCImpl.positionHistoryDao(), singletonCImpl.geofenceDao());
 
           case 1: // com.meshcommand.app.data.MeshDatabase 
           return (T) AppModule_ProvideMeshDatabaseFactory.provideMeshDatabase(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));

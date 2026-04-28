@@ -58,3 +58,20 @@
 - Test luồng dữ liệu E2E: Fake USB Data -> Room DB -> StateFlow -> Compose UI rendering.
 
 ---
+
+## Phase 8 — Tactical Geofencing
+
+**Mục tiêu:** Mở rộng khả năng cảnh báo tự động trên bản đồ dựa trên khu vực địa lý.
+
+### Task 8.1 — Interactive Geofence Drawing
+- Hỗ trợ vẽ các vùng polygon (Safe Zone, Danger Zone) trực tiếp trên bản đồ MapLibre bằng cử chỉ vuốt/chạm.
+- Lưu trữ tọa độ vùng Geofence vào Room Database.
+
+### Task 8.2 — Real-time Geofence Checking
+- Thêm logic kiểm tra tọa độ Node mới nhận xem có nằm trong vùng nguy hiểm hoặc rời khỏi vùng an toàn.
+- Cập nhật trạng thái Node thành CRITICAL và hiển thị cảnh báo đỏ trên màn hình.
+
+### Task 8.3 — Gateway Alert Sync
+- Đồng bộ cấu hình Geofence xuống Gateway (qua USB/BLE) hoặc gửi lệnh Broadcast Alert tới các Node vi phạm thông qua mạng LoRa Mesh.
+
+---

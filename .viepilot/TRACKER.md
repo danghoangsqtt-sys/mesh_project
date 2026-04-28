@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Milestone** | Milestone 2 (v2.0.0) |
-| **Phase** | Phase 5 — Advanced Mapping & Visualization |
+| **Phase** | Phase 8 — Tactical Geofencing |
 | **Status** | ⬜ Not Started |
 | **Version** | 2.0.0-dev |
 | **Last Updated** | 2026-04-28 |
@@ -31,9 +31,24 @@
 ### Phase 7 — Quality Assurance & Testing (0/3 tasks)
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 7.1 | Unit Testing | ⬜ Todo | JUnit 5, MockK |
-| 7.2 | Mock Serial & UI Tests | ⬜ Todo | Compose testing |
-| 7.3 | Integration Test Suite | ⬜ Todo | E2E Data flow |
+| 7.1 | Unit Testing | ✅ Done | JUnit 5, MockK |
+| 7.2 | Mock Serial & UI Tests | ✅ Done | Compose testing |
+| 7.3 | Integration Test Suite | ✅ Done | E2E Data flow |
+
+### Phase 8 — Tactical Geofencing (0/3 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 8.1 | Interactive Geofence Drawing | ✅ Done | MapLibre polygons |
+| 8.2 | Real-time Geofence Checking | ✅ Done | Point-in-polygon logic |
+| 8.3 | Gateway Alert Sync | ✅ Done | Broadcast alert |
+
+## Backlog
+
+### Pending Requests
+| ID | Type | Title | Priority | Status |
+|----|------|-------|----------|--------|
+| FEAT-002 | ✨ | Offline Map Downloader & Modern Icon | high | ✅ Done |
+| ENH-003 | 🔧 | Tactical Panel Scroll & Missing UI | high | triaged |
 
 ## Version History
 

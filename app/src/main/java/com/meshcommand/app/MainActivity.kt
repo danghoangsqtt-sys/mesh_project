@@ -87,6 +87,20 @@ class MainActivity : ComponentActivity() {
                         )
                     }
             }
+
+            // Collect Gateway Alerts (Geofencing)
+            lifecycleScope.launch(Dispatchers.IO) {
+                soldierRepository.outgoingCommands
+                    .catch { e -> Log.e(TAG, "Outgoing command flow error: ${e.message}") }
+                    .collect { cmdStr ->
+                        Log.d(TAG, "Gateway Alert Sync sending: $cmdStr")
+                        val packet = com.meshcommand.app.comm.CommandPacket(
+                            targetNodeId = 0, // 0 for Broadcast
+                            message = cmdStr
+                        )
+                        binder.sendCommand(packet.toByteArray())
+                    }
+            }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {

@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import com.meshcommand.app.data.entity.GeofenceEntity
 import javax.inject.Inject
 
 @HiltViewModel
@@ -69,5 +72,60 @@ class MapViewModel @Inject constructor(
 
     fun setTrailDuration(durationMs: Long) {
         _trailDurationMs.value = durationMs
+    }
+
+    // ─────────────────────────────────────────────
+    // Geofencing Drawing Logic
+    // ─────────────────────────────────────────────
+
+    private val _isDrawingMode = MutableStateFlow(false)
+    val isDrawingMode: StateFlow<Boolean> = _isDrawingMode.asStateFlow()
+
+    private val _currentDrawPoints = MutableStateFlow<List<Pair<Double, Double>>>(emptyList())
+    val currentDrawPoints: StateFlow<List<Pair<Double, Double>>> = _currentDrawPoints.asStateFlow()
+
+    val savedGeofences: StateFlow<List<GeofenceEntity>> = soldierRepository.activeGeofences
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun toggleDrawingMode() {
+        _isDrawingMode.value = !_isDrawingMode.value
+        if (!_isDrawingMode.value) {
+            _currentDrawPoints.value = emptyList() // clear on exit
+        }
+    }
+
+    fun onMapClick(lat: Double, lon: Double) {
+        if (_isDrawingMode.value) {
+            val newList = _currentDrawPoints.value.toMutableList()
+            newList.add(lat to lon)
+            _currentDrawPoints.value = newList
+        }
+    }
+
+    fun saveGeofence(name: String, type: String) {
+        val points = _currentDrawPoints.value
+        if (points.size >= 3) {
+            val json = points.joinToString(",", "[", "]") { "[${it.first},${it.second}]" }
+            val geofence = GeofenceEntity(
+                name = name,
+                zoneType = type,
+                pointsJson = json,
+                isActive = true
+            )
+            viewModelScope.launch(Dispatchers.IO) {
+                soldierRepository.saveGeofence(geofence)
+            }
+        }
+        toggleDrawingMode() // exit and clear
+    }
+
+    // ─────────────────────────────────────────────
+    // Offline Map Downloading Logic
+    // ─────────────────────────────────────────────
+    private val _downloadProgress = MutableStateFlow<Int?>(null) // null = not downloading, 0-100 = progress
+    val downloadProgress: StateFlow<Int?> = _downloadProgress.asStateFlow()
+
+    fun setDownloadProgress(progress: Int?) {
+        _downloadProgress.value = progress
     }
 }
