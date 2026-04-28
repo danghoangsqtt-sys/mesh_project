@@ -5,9 +5,11 @@ import androidx.room.Room
 import com.meshcommand.app.comm.UsbSerialManager
 import com.meshcommand.app.data.MeshDatabase
 import com.meshcommand.app.data.dao.EventDao
+import com.meshcommand.app.data.dao.GeofenceDao
 import com.meshcommand.app.data.dao.PositionHistoryDao
 import com.meshcommand.app.data.dao.SoldierDao
 import com.meshcommand.app.data.dao.TeamDao
+import com.meshcommand.app.data.dao.WaypointDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,5 +55,15 @@ object AppModule {
     @Provides
     fun provideTeamDao(database: MeshDatabase): TeamDao {
         return database.teamDao()
+    }
+
+    @Provides
+    fun provideGeofenceDao(database: MeshDatabase): GeofenceDao {
+        return database.geofenceDao()
+    }
+
+    @Provides
+    fun provideWaypointDao(database: MeshDatabase): WaypointDao {
+        return database.waypointDao()
     }
 }

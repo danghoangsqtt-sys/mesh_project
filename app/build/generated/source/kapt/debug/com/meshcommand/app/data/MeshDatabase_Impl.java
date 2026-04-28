@@ -13,12 +13,16 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 import com.meshcommand.app.data.dao.EventDao;
 import com.meshcommand.app.data.dao.EventDao_Impl;
+import com.meshcommand.app.data.dao.GeofenceDao;
+import com.meshcommand.app.data.dao.GeofenceDao_Impl;
 import com.meshcommand.app.data.dao.PositionHistoryDao;
 import com.meshcommand.app.data.dao.PositionHistoryDao_Impl;
 import com.meshcommand.app.data.dao.SoldierDao;
 import com.meshcommand.app.data.dao.SoldierDao_Impl;
 import com.meshcommand.app.data.dao.TeamDao;
 import com.meshcommand.app.data.dao.TeamDao_Impl;
+import com.meshcommand.app.data.dao.WaypointDao;
+import com.meshcommand.app.data.dao.WaypointDao_Impl;
 import java.lang.Class;
 import java.lang.Override;
 import java.lang.String;
@@ -41,10 +45,14 @@ public final class MeshDatabase_Impl extends MeshDatabase {
 
   private volatile TeamDao _teamDao;
 
+  private volatile GeofenceDao _geofenceDao;
+
+  private volatile WaypointDao _waypointDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(3) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(4) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `soldiers` (`node_id` INTEGER NOT NULL, `team_name` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `heading` REAL NOT NULL, `heart_rate` INTEGER NOT NULL, `spo2` INTEGER NOT NULL, `temperature` REAL NOT NULL, `humidity` REAL NOT NULL, `pressure` REAL NOT NULL, `battery_volts` REAL NOT NULL, `status_flags` INTEGER NOT NULL, `alert_level` INTEGER NOT NULL, `is_online` INTEGER NOT NULL, `last_seen_ms` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`node_id`))");
@@ -53,8 +61,10 @@ public final class MeshDatabase_Impl extends MeshDatabase {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_position_history_node_id` ON `position_history` (`node_id`)");
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_position_history_timestamp_ms` ON `position_history` (`timestamp_ms`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `teams` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `color` TEXT NOT NULL, `created_at` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `geofences` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `zone_type` TEXT NOT NULL, `points_json` TEXT NOT NULL, `is_active` INTEGER NOT NULL, `created_at` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `waypoints` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `icon_type` TEXT NOT NULL, `assigned_node_id` INTEGER, `description` TEXT NOT NULL, `created_at` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5b1b0a1558e5856e04126e6fc8a01a6a')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c77d060cc338ac9c18c8603b981f67a5')");
       }
 
       @Override
@@ -63,6 +73,8 @@ public final class MeshDatabase_Impl extends MeshDatabase {
         db.execSQL("DROP TABLE IF EXISTS `events`");
         db.execSQL("DROP TABLE IF EXISTS `position_history`");
         db.execSQL("DROP TABLE IF EXISTS `teams`");
+        db.execSQL("DROP TABLE IF EXISTS `geofences`");
+        db.execSQL("DROP TABLE IF EXISTS `waypoints`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -184,9 +196,43 @@ public final class MeshDatabase_Impl extends MeshDatabase {
                   + " Expected:\n" + _infoTeams + "\n"
                   + " Found:\n" + _existingTeams);
         }
+        final HashMap<String, TableInfo.Column> _columnsGeofences = new HashMap<String, TableInfo.Column>(6);
+        _columnsGeofences.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsGeofences.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsGeofences.put("zone_type", new TableInfo.Column("zone_type", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsGeofences.put("points_json", new TableInfo.Column("points_json", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsGeofences.put("is_active", new TableInfo.Column("is_active", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsGeofences.put("created_at", new TableInfo.Column("created_at", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysGeofences = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesGeofences = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoGeofences = new TableInfo("geofences", _columnsGeofences, _foreignKeysGeofences, _indicesGeofences);
+        final TableInfo _existingGeofences = TableInfo.read(db, "geofences");
+        if (!_infoGeofences.equals(_existingGeofences)) {
+          return new RoomOpenHelper.ValidationResult(false, "geofences(com.meshcommand.app.data.entity.GeofenceEntity).\n"
+                  + " Expected:\n" + _infoGeofences + "\n"
+                  + " Found:\n" + _existingGeofences);
+        }
+        final HashMap<String, TableInfo.Column> _columnsWaypoints = new HashMap<String, TableInfo.Column>(8);
+        _columnsWaypoints.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWaypoints.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWaypoints.put("latitude", new TableInfo.Column("latitude", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWaypoints.put("longitude", new TableInfo.Column("longitude", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWaypoints.put("icon_type", new TableInfo.Column("icon_type", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWaypoints.put("assigned_node_id", new TableInfo.Column("assigned_node_id", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWaypoints.put("description", new TableInfo.Column("description", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsWaypoints.put("created_at", new TableInfo.Column("created_at", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysWaypoints = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesWaypoints = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoWaypoints = new TableInfo("waypoints", _columnsWaypoints, _foreignKeysWaypoints, _indicesWaypoints);
+        final TableInfo _existingWaypoints = TableInfo.read(db, "waypoints");
+        if (!_infoWaypoints.equals(_existingWaypoints)) {
+          return new RoomOpenHelper.ValidationResult(false, "waypoints(com.meshcommand.app.data.entity.WaypointEntity).\n"
+                  + " Expected:\n" + _infoWaypoints + "\n"
+                  + " Found:\n" + _existingWaypoints);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "5b1b0a1558e5856e04126e6fc8a01a6a", "fc27862b501d2e48ab255ad033e0ff7b");
+    }, "c77d060cc338ac9c18c8603b981f67a5", "6f12054183ef0a71f63a87a63c1d9f6f");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -197,7 +243,7 @@ public final class MeshDatabase_Impl extends MeshDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "soldiers","events","position_history","teams");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "soldiers","events","position_history","teams","geofences","waypoints");
   }
 
   @Override
@@ -217,6 +263,8 @@ public final class MeshDatabase_Impl extends MeshDatabase {
       _db.execSQL("DELETE FROM `events`");
       _db.execSQL("DELETE FROM `position_history`");
       _db.execSQL("DELETE FROM `teams`");
+      _db.execSQL("DELETE FROM `geofences`");
+      _db.execSQL("DELETE FROM `waypoints`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -238,6 +286,8 @@ public final class MeshDatabase_Impl extends MeshDatabase {
     _typeConvertersMap.put(EventDao.class, EventDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(PositionHistoryDao.class, PositionHistoryDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(TeamDao.class, TeamDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(GeofenceDao.class, GeofenceDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(WaypointDao.class, WaypointDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -308,6 +358,34 @@ public final class MeshDatabase_Impl extends MeshDatabase {
           _teamDao = new TeamDao_Impl(this);
         }
         return _teamDao;
+      }
+    }
+  }
+
+  @Override
+  public GeofenceDao geofenceDao() {
+    if (_geofenceDao != null) {
+      return _geofenceDao;
+    } else {
+      synchronized(this) {
+        if(_geofenceDao == null) {
+          _geofenceDao = new GeofenceDao_Impl(this);
+        }
+        return _geofenceDao;
+      }
+    }
+  }
+
+  @Override
+  public WaypointDao waypointDao() {
+    if (_waypointDao != null) {
+      return _waypointDao;
+    } else {
+      synchronized(this) {
+        if(_waypointDao == null) {
+          _waypointDao = new WaypointDao_Impl(this);
+        }
+        return _waypointDao;
       }
     }
   }

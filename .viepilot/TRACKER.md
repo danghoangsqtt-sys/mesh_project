@@ -6,7 +6,7 @@
 |-------|-------|
 | **Phase** | Phase 2 — Enhanced Situational Awareness |
 | **Status** | 🔵 In Progress |
-| **Version** | 0.1.0-dev |
+| **Version** | 1.0.0 |
 | **Last Updated** | 2026-04-27 |
 
 ## Progress Overview
@@ -35,16 +35,16 @@
 | 2.5 | Team Management | ✅ Done | TeamEntity, TeamDao, CRUD operations |
 | 2.6 | Offline Map Manager | ✅ Done | MBTiles scanner, import/delete |
 
-### Phase 3 — Advanced Tactical Features (0/6 tasks)
+### Phase 3 — Advanced Tactical Features (6/6 tasks) ✅ COMPLETE
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | Geofencing | ⬜ Not Started | — |
-| 3.2 | Distance/Bearing Calculator | ⬜ Not Started | — |
-| 3.3 | Waypoint System | ⬜ Not Started | — |
-| 3.4 | Mission Replay | ⬜ Not Started | — |
-| 3.5 | Multi-Gateway Support | ⬜ Not Started | — |
-| 3.6 | Encrypted Communication | ⬜ Not Started | Requires firmware update |
+| 3.1 | Geofencing | ✅ Done | GeofenceEntity, ray-casting algorithm |
+| 3.2 | Distance/Bearing Calculator | ✅ Done | Haversine, compass bearing, grid ref |
+| 3.3 | Waypoint System | ✅ Done | WaypointEntity, WaypointDao |
+| 3.4 | Mission Replay | ✅ Done | MissionReplayEngine with speed control |
+| 3.5 | Multi-Gateway Support | ✅ Done | Dedup manager, feedPacket API |
+| 3.6 | Encrypted Communication | ✅ Done | AES-128-CBC, key generation |
 
 ## Decision Log
 
