@@ -1,17 +1,17 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-28T18:05:00+07:00",
+  "timestamp": "2026-04-29T00:25:00+07:00",
   "phase": "10",
-  "phase_name": "UI Enhancements",
-  "task": "ENH-003",
+  "phase_name": "Field Testing & Deployment",
+  "task": "Field Test Prep",
   "total_tasks": "1",
   "status": "paused",
-  "completed_tasks": ["FEAT-002 (Offline Map & Icon)"],
-  "remaining_tasks": ["ENH-003 (Tactical Panel Scroll, Node Status, Event Log)"],
-  "blockers": ["Sai đường dẫn file `TacticalPanel.kt` khi cố gắng đọc/chỉnh sửa mã nguồn Compose. Cần tìm file gốc chứa giao diện cột bên phải."],
-  "human_actions_pending": [],
-  "decisions": ["Sử dụng vp-pause để ngưng thực thi ngay sau khi phát hiện lỗi không tìm thấy file, giữ nguyên hiện trạng để phân tích sau."],
-  "uncommitted_files": ["Các thay đổi trong `TRACKER.md`, `ROADMAP.md` (nếu có), `FEAT-002.md`, `ENH-003.md`, App Icon mới."],
-  "next_action": "Tìm kiếm file giao diện đúng chứa Tactical Panel (có thể nằm trong `MapScreen.kt` hoặc thư mục khác) để thực thi thêm Scroll và bổ sung UI (Node Status, Event Log).",
-  "context_notes": "Milestone 2 (Phase 9) đã thành công rực rỡ với bản đồ Offline và Icon xịn. Phần tiếp theo chỉ thuần tuý tinh chỉnh UI (Compose) để thêm scrollbar và bảng dữ liệu."
+  "completed_tasks": ["FEAT-002 (Offline Map & Icon)", "ENH-003 (Tactical Panel Scroll, Node Status, Event Log)"],
+  "remaining_tasks": ["Test OTG connection with Gateway LilyGo on Z Fold 3", "Test GPS accuracy and node tracking"],
+  "blockers": [],
+  "human_actions_pending": ["Connect Z Fold 3 via USB", "Run ./gradlew installDebug to deploy to Z Fold 3", "Plug LilyGo board into Z Fold 3 via OTG"],
+  "decisions": ["Giữ nguyên android.hardware.usb.host required='true' vì Z Fold 3 có hỗ trợ USB OTG và là thiết bị test chính."],
+  "uncommitted_files": [],
+  "next_action": "Run ./gradlew installDebug with Z Fold 3 connected, then test OTG and GPS in the field.",
+  "context_notes": "Phase 10 UI enhancements are fully complete. Next step is real-world field testing using Samsung Galaxy Z Fold 3 with a physical LilyGo Gateway."
 }

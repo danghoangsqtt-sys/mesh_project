@@ -45,6 +45,7 @@ fun EventLog(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f)
                 .background(MeshColors.SurfaceDark, RoundedCornerShape(4.dp))
                 .padding(4.dp)
         ) {

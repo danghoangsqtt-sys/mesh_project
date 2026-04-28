@@ -48,7 +48,7 @@
 | ID | Type | Title | Priority | Status |
 |----|------|-------|----------|--------|
 | FEAT-002 | ✨ | Offline Map Downloader & Modern Icon | high | ✅ Done |
-| ENH-003 | 🔧 | Tactical Panel Scroll & Missing UI | high | triaged |
+| ENH-003 | 🔧 | Tactical Panel Scroll & Missing UI | high | ✅ Done |
 
 ## Version History
 

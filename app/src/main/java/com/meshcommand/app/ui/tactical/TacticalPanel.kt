@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,11 +36,14 @@ fun TacticalPanel(
     val lastRxTime by viewModel.lastRxTime.collectAsState()
     val events by viewModel.recentEvents.collectAsState()
 
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = modifier
             .fillMaxHeight()
             .background(MeshColors.BgDark)
-            .padding(8.dp),
+            .padding(8.dp)
+            .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         // Title
@@ -62,7 +68,7 @@ fun TacticalPanel(
             lastRxTimeMs = lastRxTime
         )
 
-        // Node Table (takes available space)
+        // Node Table (uses bounded height to allow internal scroll without crashing parent)
         NodeTable(
             soldiers = soldiers,
             selectedNodeId = selectedNodeId,
@@ -72,7 +78,7 @@ fun TacticalPanel(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
+                .heightIn(min = 150.dp, max = 300.dp)
         )
 
         // Command Panel
@@ -86,7 +92,7 @@ fun TacticalPanel(
             events = events,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.6f)
+                .heightIn(min = 150.dp, max = 250.dp)
         )
     }
 }
