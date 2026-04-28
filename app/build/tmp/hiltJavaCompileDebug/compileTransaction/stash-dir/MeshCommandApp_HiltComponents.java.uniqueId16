@@ -1,5 +1,7 @@
 package com.meshcommand.app;
 
+import com.meshcommand.app.di.AppModule;
+import com.meshcommand.app.service.MeshForegroundService_GeneratedInjector;
 import dagger.Binds;
 import dagger.Component;
 import dagger.Module;
@@ -115,6 +117,7 @@ public final class MeshCommandApp_HiltComponents {
 
   @Component(
       modules = {
+          AppModule.class,
           ApplicationContextModule.class,
           HiltWrapper_FragmentGetContextFix_FragmentGetContextFixModule.class,
           ActivityRetainedCBuilderModule.class,
@@ -132,7 +135,8 @@ public final class MeshCommandApp_HiltComponents {
 
   @Subcomponent
   @ServiceScoped
-  public abstract static class ServiceC implements ServiceComponent,
+  public abstract static class ServiceC implements MeshForegroundService_GeneratedInjector,
+      ServiceComponent,
       GeneratedComponent {
     @Subcomponent.Builder
     abstract interface Builder extends ServiceComponentBuilder {

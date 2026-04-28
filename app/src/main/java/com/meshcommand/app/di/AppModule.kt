@@ -1,7 +1,11 @@
 package com.meshcommand.app.di
 
 import android.content.Context
+import androidx.room.Room
 import com.meshcommand.app.comm.UsbSerialManager
+import com.meshcommand.app.data.MeshDatabase
+import com.meshcommand.app.data.dao.EventDao
+import com.meshcommand.app.data.dao.SoldierDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,5 +21,25 @@ object AppModule {
     @Singleton
     fun provideUsbSerialManager(@ApplicationContext context: Context): UsbSerialManager {
         return UsbSerialManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMeshDatabase(@ApplicationContext context: Context): MeshDatabase {
+        return Room.databaseBuilder(
+            context,
+            MeshDatabase::class.java,
+            "mesh_command.db"
+        ).build()
+    }
+
+    @Provides
+    fun provideSoldierDao(database: MeshDatabase): SoldierDao {
+        return database.soldierDao()
+    }
+
+    @Provides
+    fun provideEventDao(database: MeshDatabase): EventDao {
+        return database.eventDao()
     }
 }
