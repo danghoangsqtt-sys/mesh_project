@@ -583,3 +583,4 @@ int styleable maplibre_MapView_maplibre_uiRotateGestures 46
 int styleable maplibre_MapView_maplibre_uiScrollGestures 47
 int styleable maplibre_MapView_maplibre_uiTiltGestures 48
 int styleable maplibre_MapView_maplibre_uiZoomGestures 49
+int xml device_filter 0x7f0d0000

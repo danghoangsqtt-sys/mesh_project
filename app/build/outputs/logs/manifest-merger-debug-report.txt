@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-30:12
-INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-30:12
-INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-30:12
-INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-30:12
+ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-36:12
+INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-36:12
+INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-36:12
+INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-36:12
 MERGED from [com.google.dagger:hilt-android:2.51.1] C:\Users\dangh\.gradle\caches\transforms-4\c6bf4e58248ab2db2bfac201807f9439\transformed\jetified-hilt-android-2.51.1\AndroidManifest.xml:16:1-19:12
 MERGED from [androidx.compose.material3:material3-android:1.2.1] C:\Users\dangh\.gradle\caches\transforms-4\31d99edd18e09943d2280070a3298f66\transformed\jetified-material3-release\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.compose.material:material-android:1.6.7] C:\Users\dangh\.gradle\caches\transforms-4\28cb9dca4c6bcdf10bef46f82b5458bf\transformed\jetified-material-release\AndroidManifest.xml:2:1-7:12
@@ -90,8 +90,8 @@ ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidMa
 	android:name
 		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:7:22-91
 application
-ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:9:5-28:19
-INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:9:5-28:19
+ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:9:5-34:19
+INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:9:5-34:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.6.7] C:\Users\dangh\.gradle\caches\transforms-4\da11774d0a2da6abf404084285dbf1a3\transformed\jetified-ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.6.7] C:\Users\dangh\.gradle\caches\transforms-4\da11774d0a2da6abf404084285dbf1a3\transformed\jetified-ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.compose.ui:ui-test-manifest:1.6.7] C:\Users\dangh\.gradle\caches\transforms-4\b6baa1ae937d18e82087b583ac5b4664\transformed\jetified-ui-test-manifest-1.6.7\AndroidManifest.xml:22:5-26:19
@@ -131,7 +131,7 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\dangh\.gradle\cach
 	android:name
 		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:10:9-39
 activity#com.meshcommand.app.MainActivity
-ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:17:9-27:20
+ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:17:9-33:20
 	android:screenOrientation
 		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:20:13-50
 	android:exported
@@ -150,6 +150,18 @@ category#android.intent.category.LAUNCHER
 ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:25:17-77
 	android:name
 		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:25:27-74
+intent-filter#action:name:android.hardware.usb.action.USB_DEVICE_ATTACHED
+ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:27:13-29:29
+action#android.hardware.usb.action.USB_DEVICE_ATTACHED
+ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:28:17-90
+	android:name
+		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:28:25-87
+meta-data#android.hardware.usb.action.USB_DEVICE_ATTACHED
+ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:30:13-32:57
+	android:resource
+		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:32:17-54
+	android:name
+		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:31:17-79
 uses-sdk
 INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml

@@ -429,6 +429,7 @@ com.meshcommand.app:attr/fontProviderCerts = 0x7f030003
 com.meshcommand.app:attr/maplibre_apiBaseUri = 0x7f030010
 com.meshcommand.app:attr/maplibre_compassAnimationEnabled = 0x7f030029
 com.meshcommand.app:id/tag_transition_group = 0x7f07005c
+com.meshcommand.app:xml/device_filter = 0x7f0d0000
 com.meshcommand.app:id/notification_main_column_container = 0x7f07004b
 com.meshcommand.app:string/m3c_time_picker_minute_selection = 0x7f0a0041
 com.meshcommand.app:id/forever = 0x7f070038
