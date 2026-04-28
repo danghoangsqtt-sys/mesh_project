@@ -11,14 +11,14 @@
 
 ## Progress Overview
 
-### Phase 1 — Core Command Center (3/8 tasks)
+### Phase 1 — Core Command Center (4/8 tasks)
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 1.1 | Project Setup & Build System | ✅ Done | Initialized Compose and Hilt |
 | 1.2 | Binary Protocol Layer | ✅ Done | Implemented CRC16, Parser, FrameExtractor |
 | 1.3 | USB OTG Serial Manager | ✅ Done | callbackFlow bridge, VID/PID auto-detect |
-| 1.4 | ForegroundService | ⬜ Not Started | — |
+| 1.4 | ForegroundService | ✅ Done | Service + Binder + notification |
 | 1.5 | Data Layer (Room + Repository) | ⬜ Not Started | — |
 | 1.6 | MapLibre Offline Map | ⬜ Not Started | — |
 | 1.7 | Tactical Panel UI | ⬜ Not Started | — |

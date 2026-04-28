@@ -7,6 +7,7 @@ import android.view.View;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
+import com.meshcommand.app.service.MeshForegroundService;
 import dagger.hilt.android.ActivityRetainedLifecycle;
 import dagger.hilt.android.ViewModelLifecycle;
 import dagger.hilt.android.internal.builders.ActivityComponentBuilder;
@@ -474,6 +475,10 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
       this.singletonCImpl = singletonCImpl;
 
 
+    }
+
+    @Override
+    public void injectMeshForegroundService(MeshForegroundService meshForegroundService) {
     }
   }
 

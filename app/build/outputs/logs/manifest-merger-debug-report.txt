@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-36:12
-INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-36:12
-INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-36:12
-INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-36:12
+ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-40:12
+INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-40:12
+INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-40:12
+INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:2:1-40:12
 MERGED from [com.google.dagger:hilt-android:2.51.1] C:\Users\dangh\.gradle\caches\transforms-4\c6bf4e58248ab2db2bfac201807f9439\transformed\jetified-hilt-android-2.51.1\AndroidManifest.xml:16:1-19:12
 MERGED from [androidx.compose.material3:material3-android:1.2.1] C:\Users\dangh\.gradle\caches\transforms-4\31d99edd18e09943d2280070a3298f66\transformed\jetified-material3-release\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.compose.material:material-android:1.6.7] C:\Users\dangh\.gradle\caches\transforms-4\28cb9dca4c6bcdf10bef46f82b5458bf\transformed\jetified-material-release\AndroidManifest.xml:2:1-7:12
@@ -90,8 +90,8 @@ ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidMa
 	android:name
 		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:7:22-91
 application
-ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:9:5-34:19
-INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:9:5-34:19
+ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:9:5-38:19
+INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:9:5-38:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.6.7] C:\Users\dangh\.gradle\caches\transforms-4\da11774d0a2da6abf404084285dbf1a3\transformed\jetified-ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.6.7] C:\Users\dangh\.gradle\caches\transforms-4\da11774d0a2da6abf404084285dbf1a3\transformed\jetified-ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.compose.ui:ui-test-manifest:1.6.7] C:\Users\dangh\.gradle\caches\transforms-4\b6baa1ae937d18e82087b583ac5b4664\transformed\jetified-ui-test-manifest-1.6.7\AndroidManifest.xml:22:5-26:19
@@ -162,6 +162,14 @@ ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidMa
 		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:32:17-54
 	android:name
 		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:31:17-79
+service#com.meshcommand.app.service.MeshForegroundService
+ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:34:9-37:63
+	android:exported
+		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:36:13-37
+	android:foregroundServiceType
+		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:37:13-60
+	android:name
+		ADDED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml:35:13-58
 uses-sdk
 INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from E:\data\MyProject\2026\mesh_lilygo_app_android\app\src\main\AndroidManifest.xml
