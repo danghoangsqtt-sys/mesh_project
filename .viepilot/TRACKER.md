@@ -11,7 +11,7 @@
 
 ## Progress Overview
 
-### Phase 1 — Core Command Center (5/8 tasks)
+### Phase 1 — Core Command Center (6/8 tasks)
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
@@ -20,7 +20,7 @@
 | 1.3 | USB OTG Serial Manager | ✅ Done | callbackFlow bridge, VID/PID auto-detect |
 | 1.4 | ForegroundService | ✅ Done | Service + Binder + notification |
 | 1.5 | Data Layer (Room + Repository) | ✅ Done | Entities, DAOs, Repository with alerts |
-| 1.6 | MapLibre Offline Map | ⬜ Not Started | — |
+| 1.6 | MapLibre Offline Map | ✅ Done | Military style, status-coded markers |
 | 1.7 | Tactical Panel UI | ⬜ Not Started | — |
 | 1.8 | Main Activity & Layout | ⬜ Not Started | — |
 

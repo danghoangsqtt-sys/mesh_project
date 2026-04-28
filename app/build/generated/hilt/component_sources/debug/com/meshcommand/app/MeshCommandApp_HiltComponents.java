@@ -2,6 +2,7 @@ package com.meshcommand.app;
 
 import com.meshcommand.app.di.AppModule;
 import com.meshcommand.app.service.MeshForegroundService_GeneratedInjector;
+import com.meshcommand.app.ui.map.MapViewModel_HiltModules;
 import dagger.Binds;
 import dagger.Component;
 import dagger.Module;
@@ -147,6 +148,7 @@ public final class MeshCommandApp_HiltComponents {
       modules = {
           HiltWrapper_ActivityRetainedComponentManager_LifecycleModule.class,
           HiltWrapper_SavedStateHandleModule.class,
+          MapViewModel_HiltModules.KeyModule.class,
           ActivityCBuilderModule.class,
           ViewModelCBuilderModule.class
       }
@@ -183,7 +185,10 @@ public final class MeshCommandApp_HiltComponents {
   }
 
   @Subcomponent(
-      modules = HiltWrapper_HiltViewModelFactory_ViewModelModule.class
+      modules = {
+          HiltWrapper_HiltViewModelFactory_ViewModelModule.class,
+          MapViewModel_HiltModules.BindsModule.class
+      }
   )
   @ViewModelScoped
   public abstract static class ViewModelC implements ViewModelComponent,

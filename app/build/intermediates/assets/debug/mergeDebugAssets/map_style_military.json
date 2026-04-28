@@ -1,0 +1,15 @@
+{
+  "version": 8,
+  "name": "Military Tactical",
+  "sources": {},
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#1a2a1a"
+      }
+    }
+  ],
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf"
+}
