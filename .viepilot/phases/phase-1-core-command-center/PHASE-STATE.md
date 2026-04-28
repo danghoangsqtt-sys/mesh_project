@@ -10,7 +10,7 @@
 | 1.5 Data Layer (Room + Repository) | ✅ done | 2026-04-28 |
 | 1.6 MapLibre Offline Map | ✅ done | 2026-04-28 |
 | 1.7 Tactical Panel UI | ✅ done | 2026-04-28 |
-| 1.8 Main Activity & Layout | ⬜ not_started | - |
+| 1.8 Main Activity & Layout | ✅ done | 2026-04-28 |
 
 ## Notes
 - Phase 1 initialized.

@@ -3,6 +3,7 @@ package com.meshcommand.app;
 import com.meshcommand.app.di.AppModule;
 import com.meshcommand.app.service.MeshForegroundService_GeneratedInjector;
 import com.meshcommand.app.ui.map.MapViewModel_HiltModules;
+import com.meshcommand.app.ui.tactical.TacticalViewModel_HiltModules;
 import dagger.Binds;
 import dagger.Component;
 import dagger.Module;
@@ -150,7 +151,8 @@ public final class MeshCommandApp_HiltComponents {
           HiltWrapper_SavedStateHandleModule.class,
           MapViewModel_HiltModules.KeyModule.class,
           ActivityCBuilderModule.class,
-          ViewModelCBuilderModule.class
+          ViewModelCBuilderModule.class,
+          TacticalViewModel_HiltModules.KeyModule.class
       }
   )
   @ActivityRetainedScoped
@@ -187,7 +189,8 @@ public final class MeshCommandApp_HiltComponents {
   @Subcomponent(
       modules = {
           HiltWrapper_HiltViewModelFactory_ViewModelModule.class,
-          MapViewModel_HiltModules.BindsModule.class
+          MapViewModel_HiltModules.BindsModule.class,
+          TacticalViewModel_HiltModules.BindsModule.class
       }
   )
   @ViewModelScoped

@@ -17,6 +17,8 @@ import com.meshcommand.app.di.AppModule_ProvideSoldierDaoFactory;
 import com.meshcommand.app.service.MeshForegroundService;
 import com.meshcommand.app.ui.map.MapViewModel;
 import com.meshcommand.app.ui.map.MapViewModel_HiltModules;
+import com.meshcommand.app.ui.tactical.TacticalViewModel;
+import com.meshcommand.app.ui.tactical.TacticalViewModel_HiltModules;
 import dagger.hilt.android.ActivityRetainedLifecycle;
 import dagger.hilt.android.ViewModelLifecycle;
 import dagger.hilt.android.internal.builders.ActivityComponentBuilder;
@@ -37,6 +39,7 @@ import dagger.internal.DoubleCheck;
 import dagger.internal.IdentifierNameString;
 import dagger.internal.KeepFieldType;
 import dagger.internal.LazyClassKeyMap;
+import dagger.internal.MapBuilder;
 import dagger.internal.Preconditions;
 import dagger.internal.Provider;
 import java.util.Collections;
@@ -371,7 +374,7 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
 
     @Override
     public Map<Class<?>, Boolean> getViewModelKeys() {
-      return LazyClassKeyMap.<Boolean>of(Collections.<String, Boolean>singletonMap(LazyClassKeyProvider.com_meshcommand_app_ui_map_MapViewModel, MapViewModel_HiltModules.KeyModule.provide()));
+      return LazyClassKeyMap.<Boolean>of(MapBuilder.<String, Boolean>newMapBuilder(2).put(LazyClassKeyProvider.com_meshcommand_app_ui_map_MapViewModel, MapViewModel_HiltModules.KeyModule.provide()).put(LazyClassKeyProvider.com_meshcommand_app_ui_tactical_TacticalViewModel, TacticalViewModel_HiltModules.KeyModule.provide()).build());
     }
 
     @Override
@@ -391,7 +394,12 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
+      static String com_meshcommand_app_ui_tactical_TacticalViewModel = "com.meshcommand.app.ui.tactical.TacticalViewModel";
+
       static String com_meshcommand_app_ui_map_MapViewModel = "com.meshcommand.app.ui.map.MapViewModel";
+
+      @KeepFieldType
+      TacticalViewModel com_meshcommand_app_ui_tactical_TacticalViewModel2;
 
       @KeepFieldType
       MapViewModel com_meshcommand_app_ui_map_MapViewModel2;
@@ -407,6 +415,8 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
 
     private Provider<MapViewModel> mapViewModelProvider;
 
+    private Provider<TacticalViewModel> tacticalViewModelProvider;
+
     private ViewModelCImpl(SingletonCImpl singletonCImpl,
         ActivityRetainedCImpl activityRetainedCImpl, SavedStateHandle savedStateHandleParam,
         ViewModelLifecycle viewModelLifecycleParam) {
@@ -421,11 +431,12 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
     private void initialize(final SavedStateHandle savedStateHandleParam,
         final ViewModelLifecycle viewModelLifecycleParam) {
       this.mapViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 0);
+      this.tacticalViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 1);
     }
 
     @Override
     public Map<Class<?>, javax.inject.Provider<ViewModel>> getHiltViewModelMap() {
-      return LazyClassKeyMap.<javax.inject.Provider<ViewModel>>of(Collections.<String, javax.inject.Provider<ViewModel>>singletonMap(LazyClassKeyProvider.com_meshcommand_app_ui_map_MapViewModel, ((Provider) mapViewModelProvider)));
+      return LazyClassKeyMap.<javax.inject.Provider<ViewModel>>of(MapBuilder.<String, javax.inject.Provider<ViewModel>>newMapBuilder(2).put(LazyClassKeyProvider.com_meshcommand_app_ui_map_MapViewModel, ((Provider) mapViewModelProvider)).put(LazyClassKeyProvider.com_meshcommand_app_ui_tactical_TacticalViewModel, ((Provider) tacticalViewModelProvider)).build());
     }
 
     @Override
@@ -435,7 +446,12 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
+      static String com_meshcommand_app_ui_tactical_TacticalViewModel = "com.meshcommand.app.ui.tactical.TacticalViewModel";
+
       static String com_meshcommand_app_ui_map_MapViewModel = "com.meshcommand.app.ui.map.MapViewModel";
+
+      @KeepFieldType
+      TacticalViewModel com_meshcommand_app_ui_tactical_TacticalViewModel2;
 
       @KeepFieldType
       MapViewModel com_meshcommand_app_ui_map_MapViewModel2;
@@ -464,6 +480,9 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
         switch (id) {
           case 0: // com.meshcommand.app.ui.map.MapViewModel 
           return (T) new MapViewModel(singletonCImpl.soldierRepositoryProvider.get());
+
+          case 1: // com.meshcommand.app.ui.tactical.TacticalViewModel 
+          return (T) new TacticalViewModel(singletonCImpl.soldierRepositoryProvider.get());
 
           default: throw new AssertionError(id);
         }

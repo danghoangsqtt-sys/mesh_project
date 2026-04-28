@@ -11,7 +11,7 @@
 
 ## Progress Overview
 
-### Phase 1 — Core Command Center (7/8 tasks)
+### Phase 1 — Core Command Center (8/8 tasks) ✅ COMPLETE
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
@@ -22,7 +22,7 @@
 | 1.5 | Data Layer (Room + Repository) | ✅ Done | Entities, DAOs, Repository with alerts |
 | 1.6 | MapLibre Offline Map | ✅ Done | Military style, status-coded markers |
 | 1.7 | Tactical Panel UI | ✅ Done | 8 composables, military theme |
-| 1.8 | Main Activity & Layout | ⬜ Not Started | — |
+| 1.8 | Main Activity & Layout | ✅ Done | Split-screen 65/35, Service wiring |
 
 ### Phase 2 — Enhanced Situational Awareness (0/6 tasks)
 

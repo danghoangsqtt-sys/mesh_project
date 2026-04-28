@@ -365,6 +365,7 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
 
     @Override
     public void injectMainActivity(MainActivity mainActivity) {
+      injectMainActivity2(mainActivity);
     }
 
     @Override
@@ -390,6 +391,11 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
     @Override
     public ViewComponentBuilder viewComponentBuilder() {
       return new ViewCBuilder(singletonCImpl, activityRetainedCImpl, activityCImpl);
+    }
+
+    private MainActivity injectMainActivity2(MainActivity instance) {
+      MainActivity_MembersInjector.injectSoldierRepository(instance, singletonCImpl.soldierRepositoryProvider.get());
+      return instance;
     }
 
     @IdentifierNameString

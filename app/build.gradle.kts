@@ -64,6 +64,7 @@ dependencies {
     // Hilt DI
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
     
     // MapLibre
     implementation(libs.maplibre.android)
