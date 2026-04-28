@@ -402,15 +402,15 @@ public final class DaggerMeshCommandApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
-      static String com_meshcommand_app_ui_map_MapViewModel = "com.meshcommand.app.ui.map.MapViewModel";
-
       static String com_meshcommand_app_ui_tactical_TacticalViewModel = "com.meshcommand.app.ui.tactical.TacticalViewModel";
 
-      @KeepFieldType
-      MapViewModel com_meshcommand_app_ui_map_MapViewModel2;
+      static String com_meshcommand_app_ui_map_MapViewModel = "com.meshcommand.app.ui.map.MapViewModel";
 
       @KeepFieldType
       TacticalViewModel com_meshcommand_app_ui_tactical_TacticalViewModel2;
+
+      @KeepFieldType
+      MapViewModel com_meshcommand_app_ui_map_MapViewModel2;
     }
   }
 

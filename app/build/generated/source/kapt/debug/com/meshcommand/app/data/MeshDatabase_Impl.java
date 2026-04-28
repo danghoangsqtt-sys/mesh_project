@@ -17,6 +17,8 @@ import com.meshcommand.app.data.dao.PositionHistoryDao;
 import com.meshcommand.app.data.dao.PositionHistoryDao_Impl;
 import com.meshcommand.app.data.dao.SoldierDao;
 import com.meshcommand.app.data.dao.SoldierDao_Impl;
+import com.meshcommand.app.data.dao.TeamDao;
+import com.meshcommand.app.data.dao.TeamDao_Impl;
 import java.lang.Class;
 import java.lang.Override;
 import java.lang.String;
@@ -37,10 +39,12 @@ public final class MeshDatabase_Impl extends MeshDatabase {
 
   private volatile PositionHistoryDao _positionHistoryDao;
 
+  private volatile TeamDao _teamDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(3) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `soldiers` (`node_id` INTEGER NOT NULL, `team_name` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `heading` REAL NOT NULL, `heart_rate` INTEGER NOT NULL, `spo2` INTEGER NOT NULL, `temperature` REAL NOT NULL, `humidity` REAL NOT NULL, `pressure` REAL NOT NULL, `battery_volts` REAL NOT NULL, `status_flags` INTEGER NOT NULL, `alert_level` INTEGER NOT NULL, `is_online` INTEGER NOT NULL, `last_seen_ms` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`node_id`))");
@@ -48,8 +52,9 @@ public final class MeshDatabase_Impl extends MeshDatabase {
         db.execSQL("CREATE TABLE IF NOT EXISTS `position_history` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `node_id` INTEGER NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `heading` REAL NOT NULL, `timestamp_ms` INTEGER NOT NULL, FOREIGN KEY(`node_id`) REFERENCES `soldiers`(`node_id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_position_history_node_id` ON `position_history` (`node_id`)");
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_position_history_timestamp_ms` ON `position_history` (`timestamp_ms`)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `teams` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `color` TEXT NOT NULL, `created_at` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7c3fc61cd068ebc0efabde9576fcd288')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5b1b0a1558e5856e04126e6fc8a01a6a')");
       }
 
       @Override
@@ -57,6 +62,7 @@ public final class MeshDatabase_Impl extends MeshDatabase {
         db.execSQL("DROP TABLE IF EXISTS `soldiers`");
         db.execSQL("DROP TABLE IF EXISTS `events`");
         db.execSQL("DROP TABLE IF EXISTS `position_history`");
+        db.execSQL("DROP TABLE IF EXISTS `teams`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -164,9 +170,23 @@ public final class MeshDatabase_Impl extends MeshDatabase {
                   + " Expected:\n" + _infoPositionHistory + "\n"
                   + " Found:\n" + _existingPositionHistory);
         }
+        final HashMap<String, TableInfo.Column> _columnsTeams = new HashMap<String, TableInfo.Column>(4);
+        _columnsTeams.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTeams.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTeams.put("color", new TableInfo.Column("color", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTeams.put("created_at", new TableInfo.Column("created_at", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysTeams = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesTeams = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoTeams = new TableInfo("teams", _columnsTeams, _foreignKeysTeams, _indicesTeams);
+        final TableInfo _existingTeams = TableInfo.read(db, "teams");
+        if (!_infoTeams.equals(_existingTeams)) {
+          return new RoomOpenHelper.ValidationResult(false, "teams(com.meshcommand.app.data.entity.TeamEntity).\n"
+                  + " Expected:\n" + _infoTeams + "\n"
+                  + " Found:\n" + _existingTeams);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "7c3fc61cd068ebc0efabde9576fcd288", "00de8cbd0c293d74145b74ee17348114");
+    }, "5b1b0a1558e5856e04126e6fc8a01a6a", "fc27862b501d2e48ab255ad033e0ff7b");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -177,7 +197,7 @@ public final class MeshDatabase_Impl extends MeshDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "soldiers","events","position_history");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "soldiers","events","position_history","teams");
   }
 
   @Override
@@ -196,6 +216,7 @@ public final class MeshDatabase_Impl extends MeshDatabase {
       _db.execSQL("DELETE FROM `soldiers`");
       _db.execSQL("DELETE FROM `events`");
       _db.execSQL("DELETE FROM `position_history`");
+      _db.execSQL("DELETE FROM `teams`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -216,6 +237,7 @@ public final class MeshDatabase_Impl extends MeshDatabase {
     _typeConvertersMap.put(SoldierDao.class, SoldierDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(EventDao.class, EventDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(PositionHistoryDao.class, PositionHistoryDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(TeamDao.class, TeamDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -272,6 +294,20 @@ public final class MeshDatabase_Impl extends MeshDatabase {
           _positionHistoryDao = new PositionHistoryDao_Impl(this);
         }
         return _positionHistoryDao;
+      }
+    }
+  }
+
+  @Override
+  public TeamDao teamDao() {
+    if (_teamDao != null) {
+      return _teamDao;
+    } else {
+      synchronized(this) {
+        if(_teamDao == null) {
+          _teamDao = new TeamDao_Impl(this);
+        }
+        return _teamDao;
       }
     }
   }

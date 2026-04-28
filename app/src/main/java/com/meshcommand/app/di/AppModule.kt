@@ -7,6 +7,7 @@ import com.meshcommand.app.data.MeshDatabase
 import com.meshcommand.app.data.dao.EventDao
 import com.meshcommand.app.data.dao.PositionHistoryDao
 import com.meshcommand.app.data.dao.SoldierDao
+import com.meshcommand.app.data.dao.TeamDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -47,5 +48,10 @@ object AppModule {
     @Provides
     fun providePositionHistoryDao(database: MeshDatabase): PositionHistoryDao {
         return database.positionHistoryDao()
+    }
+
+    @Provides
+    fun provideTeamDao(database: MeshDatabase): TeamDao {
+        return database.teamDao()
     }
 }

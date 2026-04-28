@@ -24,16 +24,16 @@
 | 1.7 | Tactical Panel UI | ✅ Done | 8 composables, military theme |
 | 1.8 | Main Activity & Layout | ✅ Done | Split-screen 65/35, Service wiring |
 
-### Phase 2 — Enhanced Situational Awareness (2/6 tasks)
+### Phase 2 — Enhanced Situational Awareness (6/6 tasks) ✅ COMPLETE
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 2.1 | Path Trail | ✅ Done | Position history DB, polyline rendering |
 | 2.2 | WiFi AP Communication | ✅ Done | TCP socket client, auto-reconnect |
-| 2.3 | Night Mode | ⬜ Not Started | — |
-| 2.4 | Advanced Alert System | ⬜ Not Started | — |
-| 2.5 | Team Management | ⬜ Not Started | — |
-| 2.6 | Offline Map Manager | ⬜ Not Started | — |
+| 2.3 | Night Mode | ✅ Done | NightMode palette, AppColorPalette switcher |
+| 2.4 | Advanced Alert System | ✅ Done | AlertManager, notifications, vibration |
+| 2.5 | Team Management | ✅ Done | TeamEntity, TeamDao, CRUD operations |
+| 2.6 | Offline Map Manager | ✅ Done | MBTiles scanner, import/delete |
 
 ### Phase 3 — Advanced Tactical Features (0/6 tasks)
 

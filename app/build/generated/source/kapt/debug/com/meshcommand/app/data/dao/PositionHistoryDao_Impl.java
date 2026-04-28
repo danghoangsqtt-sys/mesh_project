@@ -67,7 +67,7 @@ public final class PositionHistoryDao_Impl implements PositionHistoryDao {
 
   @Override
   public Object insert(final PositionHistoryEntity position,
-      final Continuation<? super Unit> $completion) {
+      final Continuation<? super Unit> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -81,12 +81,11 @@ public final class PositionHistoryDao_Impl implements PositionHistoryDao {
           __db.endTransaction();
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object deleteOlderThan(final long thresholdMs,
-      final Continuation<? super Unit> $completion) {
+  public Object deleteOlderThan(final long thresholdMs, final Continuation<? super Unit> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -107,7 +106,7 @@ public final class PositionHistoryDao_Impl implements PositionHistoryDao {
           __preparedStmtOfDeleteOlderThan.release(_stmt);
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
@@ -211,7 +210,7 @@ public final class PositionHistoryDao_Impl implements PositionHistoryDao {
   }
 
   @Override
-  public Object getCount(final Continuation<? super Integer> $completion) {
+  public Object getCount(final Continuation<? super Integer> arg0) {
     final String _sql = "SELECT COUNT(*) FROM position_history";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
     final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
@@ -239,7 +238,7 @@ public final class PositionHistoryDao_Impl implements PositionHistoryDao {
           _statement.release();
         }
       }
-    }, $completion);
+    }, arg0);
   }
 
   @NonNull
