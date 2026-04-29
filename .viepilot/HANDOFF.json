@@ -1,17 +1,21 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-29T00:25:00+07:00",
-  "phase": "10",
-  "phase_name": "Field Testing & Deployment",
-  "task": "Field Test Prep",
+  "timestamp": "2026-04-29T11:14:00+07:00",
+  "phase": "9",
+  "phase_name": "Management Demo Simulation",
+  "task": "9.1",
   "total_tasks": "1",
   "status": "paused",
-  "completed_tasks": ["FEAT-002 (Offline Map & Icon)", "ENH-003 (Tactical Panel Scroll, Node Status, Event Log)"],
-  "remaining_tasks": ["Test OTG connection with Gateway LilyGo on Z Fold 3", "Test GPS accuracy and node tracking"],
+  "completed_tasks": [],
+  "remaining_tasks": [
+    "Management Demo Simulation Environment"
+  ],
   "blockers": [],
-  "human_actions_pending": ["Connect Z Fold 3 via USB", "Run ./gradlew installDebug to deploy to Z Fold 3", "Plug LilyGo board into Z Fold 3 via OTG"],
-  "decisions": ["Giữ nguyên android.hardware.usb.host required='true' vì Z Fold 3 có hỗ trợ USB OTG và là thiết bị test chính."],
+  "human_actions_pending": [],
+  "decisions": [
+    "Thiết lập Product Flavors (live và demo) để tạo môi trường ảo cho việc trình diễn App mà không cần cắm Gateway vật lý."
+  ],
   "uncommitted_files": [],
-  "next_action": "Run ./gradlew installDebug with Z Fold 3 connected, then test OTG and GPS in the field.",
-  "context_notes": "Phase 10 UI enhancements are fully complete. Next step is real-world field testing using Samsung Galaxy Z Fold 3 with a physical LilyGo Gateway."
+  "next_action": "Implement Product Flavors (live/demo) in app/build.gradle.kts and separate MockSerialManager logic.",
+  "context_notes": "Sẽ chuyển sang thiết lập flavor để cô lập môi trường thật (USB Serial) và ảo (Mock Coroutine Sinh Tọa Độ). Mục đích phục vụ Management Demo."
 }

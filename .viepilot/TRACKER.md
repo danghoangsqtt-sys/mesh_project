@@ -5,10 +5,10 @@
 | Field | Value |
 |-------|-------|
 | **Milestone** | Milestone 2 (v2.0.0) |
-| **Phase** | Phase 8 — Tactical Geofencing |
-| **Status** | ⬜ Not Started |
+| **Phase** | Phase 9 — Management Demo Simulation |
+| **Status** | 🚧 In Progress |
 | **Version** | 2.0.0-dev |
-| **Last Updated** | 2026-04-28 |
+| **Last Updated** | 2026-04-29 |
 
 ## Progress Overview
 
@@ -38,15 +38,21 @@
 ### Phase 8 — Tactical Geofencing (0/3 tasks)
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 8.1 | Interactive Geofence Drawing | ✅ Done | MapLibre polygons |
-| 8.2 | Real-time Geofence Checking | ✅ Done | Point-in-polygon logic |
-| 8.3 | Gateway Alert Sync | ✅ Done | Broadcast alert |
+| 8.1 | Interactive Geofence Drawing | ⬜ Not Started | MapLibre polygons |
+| 8.2 | Real-time Geofence Checking | ⬜ Not Started | Point-in-polygon logic |
+| 8.3 | Gateway Alert Sync | ⬜ Not Started | Broadcast alert |
+
+### Phase 9 — Management Demo Simulation (0/1 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 9.1 | Management Demo Env | 🚧 In Progress | Setup flavors & mock data |
 
 ## Backlog
 
 ### Pending Requests
 | ID | Type | Title | Priority | Status |
 |----|------|-------|----------|--------|
+| FEAT-004 | ✨ | Management Demo Env | high | in_progress |
 | FEAT-002 | ✨ | Offline Map Downloader & Modern Icon | high | ✅ Done |
 | ENH-003 | 🔧 | Tactical Panel Scroll & Missing UI | high | ✅ Done |
 

@@ -75,3 +75,13 @@
 - Đồng bộ cấu hình Geofence xuống Gateway (qua USB/BLE) hoặc gửi lệnh Broadcast Alert tới các Node vi phạm thông qua mạng LoRa Mesh.
 
 ---
+
+## Phase 9 — Management Demo Simulation
+
+**Mục tiêu:** Tạo môi trường chạy giả lập hoàn chỉnh trên điện thoại với dữ liệu ảo để trình diễn (demo) cho cấp quản lý mà không cần Gateway thật.
+
+### Task 9.1 — Management Demo Simulation Environment
+- Thiết lập Product Flavors (`live` và `demo`) trong Gradle để tạo 2 app độc lập (App thật và App demo).
+- Tạo `MockSerialManager` để sinh dữ liệu ảo (GPS nodes di chuyển, sự kiện SOS, ra vào vùng cấm) thay vì đọc từ USB.
+- Thay thế Dependency Injection để bản `demo` sử dụng Mock, bản `live` sử dụng USB thật.
+
