@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-04T08:25:00+07:00",
+  "phase": "1",
+  "phase_name": "Pi 5 Foundation & Serial Bridge",
+  "task": "1.1",
+  "total_tasks": "6",
+  "status": "not_started",
+  "completed_tasks": [],
+  "remaining_tasks": [
+    "Project Setup & Backend Structure",
+    "Binary Packet Parser",
+    "Serial Bridge (pyserial + Thread)",
+    "SQLite Database & Models",
+    "REST API Endpoints",
+    "WebSocket Real-time Stream"
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    "Backend: Python FastAPI + pyserial + SQLite",
+    "Frontend: React + Vite + MapLibre GL JS + PMTiles",
+    "Deployment: Nginx reverse proxy + systemd + NetworkManager WiFi AP",
+    "Protocol: Giữ nguyên Binary Packet 40 bytes từ firmware mesh hiện tại"
+  ],
+  "uncommitted_files": [],
+  "next_action": "Start Task 1.1: Setup Python project structure with FastAPI + Uvicorn",
+  "context_notes": "Dự án mới crystallize từ brainstorm session 2026-05-04. Repo: mesh_pi5_server. Pi 5 4GB RAM."
+}
