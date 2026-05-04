@@ -57,6 +57,10 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
           'ai-path': {
             type: 'geojson',
             data: { type: 'FeatureCollection', features: [] }
+          },
+          'vision-targets': {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] }
           }
         },
         layers: [
@@ -72,6 +76,10 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
           {
             id: 'ai-path-line', type: 'line', source: 'ai-path',
             paint: { 'line-color': '#0ea5e9', 'line-width': 4 }
+          },
+          {
+            id: 'vision-targets', type: 'circle', source: 'vision-targets',
+            paint: { 'circle-color': '#fbbf24', 'circle-radius': 6, 'circle-stroke-width': 2, 'circle-stroke-color': '#b45309' }
           }
         ]
       },
@@ -80,8 +88,28 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       attributionControl: false
     });
 
+    let targetInterval: ReturnType<typeof setInterval>;
+
     map.on('load', () => {
       setMapLoaded(true);
+      
+      // Target polling
+      targetInterval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/vision/targets');
+          if (res.ok) {
+            const data = await res.json();
+            const features = data.targets.map((t: any) => ({
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: [t.longitude, t.latitude] },
+              properties: { id: t.id, class: t.class, confidence: t.confidence }
+            }));
+            const source = map.getSource('vision-targets') as maplibregl.GeoJSONSource;
+            if (source) source.setData({ type: 'FeatureCollection', features });
+          }
+        } catch (e) { /* ignore */ }
+      }, 5000);
+
       
       map.on('click', async (e) => {
         const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
@@ -117,6 +145,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
     mapInstance.current = map;
 
     return () => {
+      if (targetInterval) clearInterval(targetInterval);
       map.remove();
       mapInstance.current = null;
     };

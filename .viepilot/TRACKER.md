@@ -52,6 +52,14 @@
 | 5.3 | Route Display on Map | ✅ Done | TacticalMap route rendering |
 | 5.4 | Tactical Geofencing | ✅ Done | shapely Polygon intersection & WS alerts |
 
+### Phase 6 — AI Vision Integration (Future) (4/4 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 6.1 | Camera Service Stub | ✅ Done | VisionService loop created |
+| 6.2 | YOLO Inference Stub | ✅ Done | Random target generation added |
+| 6.3 | Target Alert API | ✅ Done | /api/vision/targets exposed |
+| 6.4 | Map Display for Targets | ✅ Done | Polling and rendering targets on map |
+
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|
 | 0.1.0 | 2026-05-04 | Phase 1 | Backend foundation complete |
