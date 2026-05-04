@@ -29,7 +29,12 @@
 | 2.2 | MapLibre GL JS + PMTiles Offline Map | ✅ Done | TacticalMap component |
 | 2.3 | WebSocket Client & State Management | ✅ Done | Zustand store + useWebSocket |
 | 2.4 | Tactical Panel UI | ✅ Done | Node list and vitals display |
-| 2.5 | Event Log & Alerts | ✅ Done | Event table display |
+### Phase 3 — Two-way Command & Node Management (3/3 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 3.1 | Command API & Serial Write | ✅ Done | Serial packet framing & DB update |
+| 3.2 | Remote Node Configuration UI | ✅ Done | NodeConfigModal w/ Tx rate |
+| 3.3 | OTA Firmware Upload | ✅ Done | OTA chunking backend + File picker UI |
 
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|

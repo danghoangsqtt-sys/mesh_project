@@ -1,23 +1,21 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-04T09:32:00+07:00",
-  "phase": "2",
-  "phase_name": "React Web Dashboard",
-  "task": "2.5",
-  "total_tasks": "5",
+  "timestamp": "2026-05-04T09:45:00+07:00",
+  "phase": "3",
+  "phase_name": "Two-way Command & Node Management",
+  "task": "3.3",
+  "total_tasks": "3",
   "status": "done",
   "completed_tasks": [
-    "Frontend Project Setup",
-    "MapLibre GL JS + PMTiles Offline Map",
-    "WebSocket Client & State Management",
-    "Tactical Panel UI",
-    "Event Log & Alerts"
+    "Command API & Serial Write",
+    "Remote Node Configuration UI",
+    "OTA Firmware Upload"
   ],
   "remaining_tasks": [],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [],
   "uncommitted_files": [],
-  "next_action": "Start Phase 3 — Two-way Command & Node Management",
-  "context_notes": "Phase 2 complete. Frontend ready with TacticalMap, TacticalPanel, and EventLog."
+  "next_action": "Start Phase 4 — WiFi AP Auto-Setup & Deployment",
+  "context_notes": "Phase 3 complete. Backend can now write commands and OTA chunks to the LoRa Gateway. UI has NodeConfigModal."
 }

@@ -146,3 +146,27 @@ def extract_frames(buffer: bytearray) -> tuple[list[bytes], bytearray]:
 def build_frame(packet_data: bytes) -> bytes:
     """Wrap packet data in frame markers (0xAA + data + 0x55)."""
     return bytes([FRAME_START]) + packet_data + bytes([FRAME_END])
+
+
+def build_command_packet(target_node_id: int, command_type: int, payload: bytes) -> bytes:
+    """Build an outbound command packet for the LoRa Gateway.
+    
+    Structure:
+    - 2 bytes: target_node_id (0xFFFF for broadcast)
+    - 1 byte: command_type
+    - 1 byte: payload_length
+    - N bytes: payload
+    - 2 bytes: CRC16
+    """
+    length = len(payload)
+    # Pack header: <HBB (uint16, uint8, uint8)
+    header = struct.pack("<HBB", target_node_id, command_type, length)
+    packet_data = header + payload
+    
+    # Calculate CRC16 over header + payload
+    crc = compute_crc16(packet_data)
+    
+    # Append CRC16: <H
+    full_packet = packet_data + struct.pack("<H", crc)
+    return full_packet
+

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useMeshStore, SoldierNode } from '../stores/useMeshStore';
-import { Activity, Thermometer, Droplets, Battery, AlertTriangle } from 'lucide-react';
+import { Activity, Thermometer, Droplets, Battery, AlertTriangle, Settings } from 'lucide-react';
+import NodeConfigModal from './NodeConfigModal';
 
 const TacticalPanel: React.FC = () => {
   const nodes = useMeshStore((state) => state.nodes);
   const nodeList = Object.values(nodes);
   const [selectedNode, setSelectedNode] = useState<number | null>(null);
+  const [configNode, setConfigNode] = useState<SoldierNode | null>(null);
 
   const getStatusColor = (node: SoldierNode) => {
     if (node.flags.man_down || node.flags.critical_battery) return 'var(--color-status-critical)';
@@ -47,7 +49,17 @@ const TacticalPanel: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong style={{ fontSize: '1.1rem' }}>{node.name || `Unit ${node.node_id}`}</strong>
-                {node.flags.alert && <AlertTriangle size={16} color="var(--color-status-warning)" />}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {node.flags.alert && <AlertTriangle size={16} color="var(--color-status-warning)" />}
+                  {selectedNode === node.node_id && (
+                    <Settings 
+                      size={16} 
+                      color="var(--color-text-muted)" 
+                      style={{ cursor: 'pointer' }}
+                      onClick={(e) => { e.stopPropagation(); setConfigNode(node); }}
+                    />
+                  )}
+                </div>
               </div>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginTop: '8px', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
@@ -75,6 +87,10 @@ const TacticalPanel: React.FC = () => {
           ))
         )}
       </div>
+      
+      {configNode && (
+        <NodeConfigModal node={configNode} onClose={() => setConfigNode(null)} />
+      )}
     </div>
   );
 };
