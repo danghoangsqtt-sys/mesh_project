@@ -16,6 +16,8 @@ Toàn bộ hướng dẫn cài đặt và kịch bản test nằm trong thư m�
 
 - 📖 [Đọc Tài Liệu (Documentation Index)](docs/README.md)
 - ⚙️ [Hướng dẫn Cài đặt Hệ thống lên Raspberry Pi 5](docs/dev/deployment.md)
+- 🚀 [Bước tiếp theo: Hướng dẫn gõ lệnh Terminal (Cho người mới)](docs/user/next-steps-vi.md)
+- 🚀 [Next Steps: Terminal Commands (Beginner Guide - EN)](docs/user/next-steps-en.md)
 - 🧪 [Kịch bản Kiểm thử Thực địa với T-Beam (Testing Guide)](docs/user/testing-guide.md)
 
 ## Architecture
