@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- **Phase 5:** AI Pathfinding (A* Algorithm) using `networkx` on PMTiles offline map data.
+- **Phase 5:** Tactical Geofencing with `shapely` for real-time Point-in-Polygon boundary alerts.
+- **Phase 6:** Backend structural mock/stub for future Camera/YOLO Vision Integration.
+- **Phase 7:** Internationalization (i18n) setup for UI (English / Vietnamese).
+- **Phase 7:** Extended Vitals Alerts (Heart Rate <60, SpO2 <90) and Power Loss detection.
+- **Phase 7:** Auto-timeout Connection Lost alert with Last Known Location logic.
+- **Docs:** Thêm hướng dẫn Cài đặt lên Pi 5 (`docs/dev/deployment.md`).
+- **Docs:** Thêm kịch bản kiểm thử thiết bị (`docs/user/testing-guide.md`).
+
+### Changed
+- Refactored `EventLog` UI to include clear operational instructions and i18n support.
+- Updated `TacticalMap` to dynamically poll target coordinates and render click-to-draw A* paths.
+
 ## [0.1.0] - 2026-05-04
 
 ### Added

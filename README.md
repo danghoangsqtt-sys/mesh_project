@@ -10,6 +10,14 @@
 
 Hệ thống quản lý và giám sát mạng lưới Mesh LoRa chạy trên Raspberry Pi 5. Pi 5 kết nối với Gateway (ESP32 T-Beam) qua USB Serial, phát WiFi AP, và serve dashboard chiến thuật cho nhiều thiết bị đầu cuối cùng lúc qua trình duyệt web. **100% Offline.**
 
+## Documentation
+
+Toàn bộ hướng dẫn cài đặt và kịch bản test nằm trong thư mục `docs/`:
+
+- 📖 [Đọc Tài Liệu (Documentation Index)](docs/README.md)
+- ⚙️ [Hướng dẫn Cài đặt Hệ thống lên Raspberry Pi 5](docs/dev/deployment.md)
+- 🧪 [Kịch bản Kiểm thử Thực địa với T-Beam (Testing Guide)](docs/user/testing-guide.md)
+
 ## Architecture
 
 ```
@@ -83,12 +91,13 @@ rsync -avz dist/ pi@<pi-ip>:/opt/mesh_pi5_server/frontend/dist/
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| Phase 1 | ⬜ Not Started | Pi 5 Foundation & Serial Bridge |
-| Phase 2 | ⬜ Not Started | React Web Dashboard |
-| Phase 3 | ⬜ Not Started | Two-way Command & Node Mgmt |
-| Phase 4 | ⬜ Not Started | WiFi AP Auto-Setup & Deploy |
-| Phase 5 | ⬜ Not Started | AI Pathfinding |
-| Phase 6 | ⬜ Not Started | AI Vision Integration |
+| Phase 1 | ✅ Done | Pi 5 Foundation & Serial Bridge |
+| Phase 2 | ✅ Done | React Web Dashboard |
+| Phase 3 | ✅ Done | Two-way Command & Node Mgmt |
+| Phase 4 | ✅ Done | WiFi AP Auto-Setup & Deploy |
+| Phase 5 | ✅ Done | AI Pathfinding |
+| Phase 6 | ✅ Done | AI Vision Integration |
+| Phase 7 | ✅ Done | Vitals Alerts & i18n |
 
 ## License
 
