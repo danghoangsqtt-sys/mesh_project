@@ -17,9 +17,9 @@ APP_DIR="/opt/mesh_pi5_server"
 CURRENT_DIR=$(pwd)
 
 echo "--- Setting up directory ---"
-# Assuming script is run from inside the repo root OR we just copy from current working dir
+# Support running from inside the repo root
 mkdir -p $APP_DIR
-cp -r ../* $APP_DIR/ || true  # Handle if running from deploy folder
+cp -r ./* $APP_DIR/ || true
 chown -R pi:pi $APP_DIR
 
 echo "--- Setting up Backend ---"
@@ -29,6 +29,7 @@ python3 -m venv venv
 
 echo "--- Building Frontend ---"
 cd $APP_DIR/frontend
+sudo -u pi rm -rf node_modules
 sudo -u pi npm install
 sudo -u pi npm run build
 
