@@ -1,21 +1,22 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-04T09:45:00+07:00",
-  "phase": "3",
-  "phase_name": "Two-way Command & Node Management",
-  "task": "3.3",
-  "total_tasks": "3",
+  "timestamp": "2026-05-04T09:50:00+07:00",
+  "phase": "4",
+  "phase_name": "WiFi AP Auto-Setup & Deployment",
+  "task": "4.4",
+  "total_tasks": "4",
   "status": "done",
   "completed_tasks": [
-    "Command API & Serial Write",
-    "Remote Node Configuration UI",
-    "OTA Firmware Upload"
+    "WiFi AP Setup Script",
+    "Systemd Service",
+    "Nginx Reverse Proxy",
+    "One-liner Install Script"
   ],
   "remaining_tasks": [],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [],
   "uncommitted_files": [],
-  "next_action": "Start Phase 4 — WiFi AP Auto-Setup & Deployment",
-  "context_notes": "Phase 3 complete. Backend can now write commands and OTA chunks to the LoRa Gateway. UI has NodeConfigModal."
+  "next_action": "Start Phase 5 — AI Pathfinding & Advanced Features",
+  "context_notes": "Phase 4 complete. Deployment scripts in deploy/ directory allow 1-click install and WiFi AP setup."
 }

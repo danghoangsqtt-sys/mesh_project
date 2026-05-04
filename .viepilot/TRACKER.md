@@ -36,6 +36,14 @@
 | 3.2 | Remote Node Configuration UI | ✅ Done | NodeConfigModal w/ Tx rate |
 | 3.3 | OTA Firmware Upload | ✅ Done | OTA chunking backend + File picker UI |
 
+### Phase 4 — WiFi AP Auto-Setup & Deployment (4/4 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 4.1 | WiFi AP Setup Script | ✅ Done | setup-wifi-ap.sh w/ nmcli |
+| 4.2 | Systemd Service | ✅ Done | mesh-server.service for uvicorn |
+| 4.3 | Nginx Reverse Proxy | ✅ Done | nginx.conf for static & proxy |
+| 4.4 | One-liner Install Script | ✅ Done | install.sh script |
+
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|
 | 0.1.0 | 2026-05-04 | Phase 1 | Backend foundation complete |
