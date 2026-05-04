@@ -6,21 +6,21 @@
 |-------|-------|
 | **Milestone** | Milestone 1 (v1.0.0) |
 | **Phase** | Phase 1 — Pi 5 Foundation & Serial Bridge |
-| **Status** | ⬜ Not Started |
+| **Status** | ✅ Done |
 | **Version** | 0.1.0 |
 | **Last Updated** | 2026-05-04 |
 
 ## Progress Overview
 
-### Phase 1 — Pi 5 Foundation & Serial Bridge (0/6 tasks)
+### Phase 1 — Pi 5 Foundation & Serial Bridge (6/6 tasks)
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1.1 | Project Setup & Backend Structure | ⬜ Not Started | |
-| 1.2 | Binary Packet Parser | ⬜ Not Started | |
-| 1.3 | Serial Bridge (pyserial + Thread) | ⬜ Not Started | |
-| 1.4 | SQLite Database & Models | ⬜ Not Started | |
-| 1.5 | REST API Endpoints | ⬜ Not Started | |
-| 1.6 | WebSocket Real-time Stream | ⬜ Not Started | |
+| 1.1 | Project Setup & Backend Structure | ✅ Done | FastAPI + Uvicorn + pyproject.toml |
+| 1.2 | Binary Packet Parser | ✅ Done | CRC16, frame extraction, unit tests |
+| 1.3 | Serial Bridge (pyserial + Thread) | ✅ Done | Thread + asyncio.Queue bridge |
+| 1.4 | SQLite Database & Models | ✅ Done | SQLAlchemy async + WAL mode |
+| 1.5 | REST API Endpoints | ✅ Done | /api/nodes, events, commands, status |
+| 1.6 | WebSocket Real-time Stream | ✅ Done | Connection manager + broadcaster |
 
 ## Backlog
 
@@ -33,4 +33,4 @@
 
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|
-| 0.1.0 | 2026-05-04 | Init | Project crystallized from brainstorm |
+| 0.1.0 | 2026-05-04 | Phase 1 | Backend foundation complete |
