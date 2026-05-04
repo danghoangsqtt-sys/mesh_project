@@ -2,24 +2,27 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
+import { useMeshStore } from '../stores/useMeshStore';
 
-// Initialize PMTiles protocol only once
 let protocolAdded = false;
 
 interface TacticalMapProps {
-  mapUrl?: string; // e.g., '/maps/offline.pmtiles'
+  mapUrl?: string; 
   center?: [number, number];
   zoom?: number;
 }
 
 const TacticalMap: React.FC<TacticalMapProps> = ({ 
   mapUrl = '/maps/offline.pmtiles', 
-  center = [109.1967, 12.2388], // Default to Nha Trang, Vietnam as an example
-  zoom = 12 
+  center = [109.1967, 12.2388],
+  zoom = 15 
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  
+  const [pathStart, setPathStart] = useState<[number, number] | null>(null);
+  const [pathEnd, setPathEnd] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     if (!protocolAdded) {
@@ -30,27 +33,46 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
 
     if (!mapContainer.current) return;
 
-    // Create a very basic dark style for the map if the real pmtiles is missing.
-    // In a real scenario, this style object would define sources pulling from pmtiles://
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: {
         version: 8,
         sources: {
-          'offline-map': {
-            type: 'vector',
-            url: `pmtiles://${mapUrl}`
+          'offline-map': { type: 'vector', url: `pmtiles://${mapUrl}` },
+          'geofence': {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'Polygon',
+                coordinates: [[
+                  [109.1950, 12.2370], [109.1980, 12.2370],
+                  [109.1980, 12.2400], [109.1950, 12.2400],
+                  [109.1950, 12.2370]
+                ]]
+              }
+            }
+          },
+          'ai-path': {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] }
           }
         },
         layers: [
+          { id: 'background', type: 'background', paint: { 'background-color': '#0f172a' } },
           {
-            id: 'background',
-            type: 'background',
-            paint: {
-              'background-color': '#0f172a' // Dark theme base
-            }
+            id: 'geofence-fill', type: 'fill', source: 'geofence',
+            paint: { 'fill-color': '#ef4444', 'fill-opacity': 0.1 }
+          },
+          {
+            id: 'geofence-line', type: 'line', source: 'geofence',
+            paint: { 'line-color': '#ef4444', 'line-width': 2, 'line-dasharray': [2, 2] }
+          },
+          {
+            id: 'ai-path-line', type: 'line', source: 'ai-path',
+            paint: { 'line-color': '#0ea5e9', 'line-width': 4 }
           }
-          // Note: Real vector layer styling goes here based on the OSM schema inside the PMTiles.
         ]
       },
       center: center,
@@ -61,8 +83,35 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
     map.on('load', () => {
       setMapLoaded(true);
       
-      // Add custom image for markers
-      // In a full implementation, we load an icon from /public
+      map.on('click', async (e) => {
+        const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+        
+        // Simple state machine for path selection
+        if (!pathStart || (pathStart && pathEnd)) {
+          setPathStart(coords);
+          setPathEnd(null);
+          // Clear path
+          (map.getSource('ai-path') as maplibregl.GeoJSONSource).setData({ type: 'FeatureCollection', features: [] });
+        } else {
+          setPathEnd(coords);
+          try {
+            const res = await fetch('/api/ai/pathfinding', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                start_lat: pathStart[1], start_lng: pathStart[0],
+                end_lat: coords[1], end_lng: coords[0]
+              })
+            });
+            if (res.ok) {
+              const geojson = await res.json();
+              (map.getSource('ai-path') as maplibregl.GeoJSONSource).setData(geojson);
+            }
+          } catch (err) {
+            console.error("Pathfinding error", err);
+          }
+        }
+      });
     });
 
     mapInstance.current = map;
@@ -71,28 +120,22 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       map.remove();
       mapInstance.current = null;
     };
-  }, [mapUrl, center, zoom]);
+  }, [mapUrl, center, zoom, pathStart, pathEnd]);
 
   return (
     <div 
       ref={mapContainer} 
-      style={{ 
-        width: '100%', 
-        height: '100%', 
-        borderRadius: 'var(--radius-md)', 
-        overflow: 'hidden' 
-      }} 
+      style={{ width: '100%', height: '100%', borderRadius: 'var(--radius-md)', overflow: 'hidden' }} 
       className="tactical-map"
     >
       {!mapLoaded && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          color: 'var(--color-text-muted)'
-        }}>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--color-text-muted)' }}>
           Initializing Tactical Map...
+        </div>
+      )}
+      {mapLoaded && (
+        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.7)', padding: '8px', borderRadius: '4px', fontSize: '0.8rem' }}>
+          Pathfinding: {pathStart ? (pathEnd ? 'Path drawn' : 'Select end point') : 'Select start point'}
         </div>
       )}
     </div>

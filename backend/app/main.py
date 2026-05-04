@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import init_db
-from app.routers import nodes, events, commands, status, ota
+from app.routers import nodes, events, commands, status, ota, ai
 from app.ws.connection_manager import manager
 from app.ws.websocket_handler import router as ws_router
 from app.services.serial_bridge import serial_bridge
@@ -53,6 +53,7 @@ app.include_router(events.router, prefix="/api/events", tags=["events"])
 app.include_router(commands.router, prefix="/api/commands", tags=["commands"])
 app.include_router(status.router, prefix="/api/status", tags=["status"])
 app.include_router(ota.router, prefix="/api/ota", tags=["ota"])
+app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
 app.include_router(ws_router)
 
 

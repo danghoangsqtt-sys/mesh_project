@@ -18,12 +18,35 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+from app.services.geofencing import geofencing_service
+from app.database import async_session_maker
+
 async def _packet_broadcaster():
     """Background task: consume packets from serial bridge queue and broadcast."""
     while True:
         try:
             packet = await serial_bridge.packet_queue.get()
+            
+            # Check geofence
+            alert_event = geofencing_service.check_node(packet.node_id, packet.latitude, packet.longitude)
+            
+            # Broadcast the packet
             await manager.broadcast_packet(packet)
+            
+            if alert_event:
+                # Save event to DB and broadcast
+                async with async_session_maker() as db:
+                    db.add(alert_event)
+                    await db.commit()
+                
+                await manager.broadcast_json({
+                    "type": "GEOFENCE_BREACH" if "entered" in alert_event.message else "GEOFENCE_EXIT",
+                    "data": {
+                        "node_id": alert_event.node_id,
+                        "severity": alert_event.severity,
+                        "message": alert_event.message
+                    }
+                })
         except asyncio.CancelledError:
             break
         except Exception as e:

@@ -44,6 +44,14 @@
 | 4.3 | Nginx Reverse Proxy | ✅ Done | nginx.conf for static & proxy |
 | 4.4 | One-liner Install Script | ✅ Done | install.sh script |
 
+### Phase 5 — AI Pathfinding & Advanced Features (4/4 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 5.1 | Road Network Extraction | ✅ Done | networkx graph generation |
+| 5.2 | A* Pathfinding Algorithm | ✅ Done | A* pathfinding.py and /api/ai/pathfinding |
+| 5.3 | Route Display on Map | ✅ Done | TacticalMap route rendering |
+| 5.4 | Tactical Geofencing | ✅ Done | shapely Polygon intersection & WS alerts |
+
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|
 | 0.1.0 | 2026-05-04 | Phase 1 | Backend foundation complete |
