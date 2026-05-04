@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMeshStore } from '../stores/useMeshStore';
 import { format } from 'date-fns';
 
 const EventLog: React.FC = () => {
+  const { t } = useTranslation();
   const events = useMeshStore((state) => state.events);
 
   const getEventColor = (severity: string) => {
@@ -22,13 +24,13 @@ const EventLog: React.FC = () => {
       overflow: 'hidden'
     }}>
       <div style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', backgroundColor: 'rgba(0,0,0,0.2)' }}>
-        <h3 style={{ fontSize: '1rem', margin: 0 }}>System Events</h3>
+        <h3 style={{ fontSize: '1rem', margin: 0 }}>{t('system_events')}</h3>
       </div>
       
       <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--spacing-sm)' }}>
         {events.length === 0 ? (
           <div style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginTop: '2rem' }}>
-            No recent events
+            {t('no_recent_events')}
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
@@ -54,7 +56,12 @@ const EventLog: React.FC = () => {
                     {event.node_id ? `Node ${event.node_id}` : 'System'}
                   </td>
                   <td style={{ padding: '8px 4px' }}>
-                    {event.message}
+                    <div style={{ fontWeight: 'bold' }}>{t(event.event_type) || event.event_type}</div>
+                    {event.message && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                        {t('instruction')}: {t(event.message) || event.message}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

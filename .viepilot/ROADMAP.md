@@ -195,3 +195,26 @@
 - Stream via WebSocket (MJPEG) hoặc WebRTC.
 - Auto-mark detected targets on map.
 - **Verification:** Live video + markers visible in dashboard.
+
+---
+
+## Phase 7 — Vitals Alerts & Internationalization (i18n)
+
+**Mục tiêu:** Mở rộng hệ thống cảnh báo và hỗ trợ đa ngôn ngữ cho hệ thống.
+
+### Task 7.1 — Internationalization (i18n)
+- Cấu hình `react-i18next` ở Frontend.
+- Dịch toàn bộ Dashboard sang 2 ngôn ngữ: Tiếng Việt và Tiếng Anh.
+- Thêm nút switch ngôn ngữ trên UI.
+- **Verification:** Chuyển đổi ngôn ngữ thành công mà không cần tải lại trang.
+
+### Task 7.2 — Vitals & Connectivity Alerts
+- Backend logic: theo dõi Nhịp tim (<60) và SpO2 (<90%).
+- Cảnh báo mất kết nối: Timeout 30s không nhận được ping. Hiển thị "Last Known Location" trên bản đồ.
+- Cảnh báo mất nguồn (Power Loss) qua flag hoặc % pin rớt đột ngột.
+- **Verification:** Trigger mock data và kiểm tra alert hiện đúng trên Event Log.
+
+### Task 7.3 — Smart Debug Logs & Instructions
+- Nâng cấp UI của Event Log: hiển thị rõ lý do sự cố và **hướng dẫn xử lý**.
+- Phân loại severity rõ ràng (INFO, WARNING, CRITICAL).
+- **Verification:** Event log hiển thị thông báo thân thiện với người dùng.

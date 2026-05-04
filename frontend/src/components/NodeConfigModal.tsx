@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SoldierNode } from '../stores/useMeshStore';
 
 interface NodeConfigModalProps {
@@ -7,6 +8,7 @@ interface NodeConfigModalProps {
 }
 
 const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, onClose }) => {
+  const { t } = useTranslation();
   const [txRate, setTxRate] = useState<number>(10);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -75,10 +77,10 @@ const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, onClose }) => {
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       <div className="glass-panel" style={{ padding: 'var(--spacing-lg)', width: '350px' }}>
-        <h3 style={{ marginTop: 0, color: 'var(--color-primary)' }}>Configure Node {node.node_id}</h3>
+        <h3 style={{ marginTop: 0, color: 'var(--color-primary)' }}>{t('config_node')} {node.node_id}</h3>
         
         <div style={{ marginBottom: 'var(--spacing-md)' }}>
-          <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: 'var(--spacing-xs)' }}>Tx Rate (seconds)</label>
+          <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: 'var(--spacing-xs)' }}>{t('tx_rate')}</label>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input 
               type="number" 
@@ -93,12 +95,12 @@ const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, onClose }) => {
             <button onClick={handleSave} disabled={isSubmitting} style={{ 
               padding: 'var(--spacing-sm) var(--spacing-md)', 
               backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer' 
-            }}>Set</button>
+            }}>{t('set')}</button>
           </div>
         </div>
 
         <div style={{ marginBottom: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-md)' }}>
-          <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: 'var(--spacing-xs)' }}>OTA Firmware Update</label>
+          <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: 'var(--spacing-xs)' }}>{t('ota_update')}</label>
           <input 
             type="file" 
             accept=".bin"
@@ -110,7 +112,7 @@ const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, onClose }) => {
           <button onClick={handleOTAUpload} disabled={isSubmitting} style={{ 
             width: '100%', padding: 'var(--spacing-sm)', 
             backgroundColor: 'var(--color-secondary)', color: 'white', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer' 
-          }}>Start OTA Update</button>
+          }}>{t('start_ota')}</button>
         </div>
 
         {message && <div style={{ fontSize: '0.875rem', marginBottom: 'var(--spacing-md)', color: message.includes('Error') ? 'var(--color-status-critical)' : 'var(--color-status-ok)' }}>{message}</div>}
@@ -119,7 +121,7 @@ const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, onClose }) => {
           <button onClick={onClose} disabled={isSubmitting} style={{ 
             padding: 'var(--spacing-sm) var(--spacing-md)', 
             backgroundColor: 'transparent', color: 'white', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' 
-          }}>Close</button>
+          }}>{t('close')}</button>
         </div>
       </div>
     </div>

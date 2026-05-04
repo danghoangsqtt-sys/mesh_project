@@ -19,6 +19,7 @@ router = APIRouter()
 
 
 from app.services.geofencing import geofencing_service
+from app.services.vitals import vitals_service
 from app.database import async_session_maker
 
 async def _packet_broadcaster():
@@ -28,40 +29,82 @@ async def _packet_broadcaster():
             packet = await serial_bridge.packet_queue.get()
             
             # Check geofence
-            alert_event = geofencing_service.check_node(packet.node_id, packet.latitude, packet.longitude)
+            geofence_event = geofencing_service.check_node(packet.node_id, packet.latitude, packet.longitude)
+            
+            # Check vitals
+            vital_events = vitals_service.check_vitals(
+                packet.node_id, packet.heart_rate, packet.spo2, 
+                packet.battery_voltage, packet.latitude, packet.longitude
+            )
+            
+            all_events = vital_events
+            if geofence_event:
+                all_events.append(geofence_event)
             
             # Broadcast the packet
             await manager.broadcast_packet(packet)
             
-            if alert_event:
-                # Save event to DB and broadcast
+            # Save and broadcast events
+            if all_events:
                 async with async_session_maker() as db:
-                    db.add(alert_event)
+                    for event in all_events:
+                        db.add(event)
                     await db.commit()
                 
-                await manager.broadcast_json({
-                    "type": "GEOFENCE_BREACH" if "entered" in alert_event.message else "GEOFENCE_EXIT",
-                    "data": {
-                        "node_id": alert_event.node_id,
-                        "severity": alert_event.severity,
-                        "message": alert_event.message
-                    }
-                })
+                for event in all_events:
+                    await manager.broadcast_json({
+                        "type": "EVENT",
+                        "data": {
+                            "node_id": event.node_id,
+                            "event_type": event.event_type,
+                            "severity": event.severity,
+                            "message": event.message
+                        }
+                    })
         except asyncio.CancelledError:
             break
         except Exception as e:
             logger.error("Error broadcasting packet: %s", e)
 
 
+async def _timeout_checker():
+    """Background task: periodically check for disconnected nodes."""
+    while True:
+        try:
+            await asyncio.sleep(10)
+            timeout_events = vitals_service.check_timeouts()
+            if timeout_events:
+                async with async_session_maker() as db:
+                    for event in timeout_events:
+                        db.add(event)
+                    await db.commit()
+                
+                for event in timeout_events:
+                    await manager.broadcast_json({
+                        "type": "EVENT",
+                        "data": {
+                            "node_id": event.node_id,
+                            "event_type": event.event_type,
+                            "severity": event.severity,
+                            "message": event.message
+                        }
+                    })
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            logger.error("Error checking timeouts: %s", e)
+
 # Will be started as a background task when first client connects
 _broadcaster_task: asyncio.Task | None = None
-
+_timeout_task: asyncio.Task | None = None
 
 def _ensure_broadcaster():
     """Ensure the packet broadcaster background task is running."""
-    global _broadcaster_task
+    global _broadcaster_task, _timeout_task
     if _broadcaster_task is None or _broadcaster_task.done():
         _broadcaster_task = asyncio.create_task(_packet_broadcaster())
+    if _timeout_task is None or _timeout_task.done():
+        _timeout_task = asyncio.create_task(_timeout_checker())
 
 
 @router.websocket("/ws")

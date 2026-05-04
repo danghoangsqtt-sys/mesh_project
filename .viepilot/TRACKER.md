@@ -60,6 +60,13 @@
 | 6.3 | Target Alert API | ✅ Done | /api/vision/targets exposed |
 | 6.4 | Map Display for Targets | ✅ Done | Polling and rendering targets on map |
 
+### Phase 7 — Vitals Alerts & Internationalization (i18n) (3/3 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 7.1 | Internationalization (i18n) | ✅ Done | i18next implemented in UI |
+| 7.2 | Vitals & Connectivity Alerts | ✅ Done | Backend vitals & timeout checker |
+| 7.3 | Smart Debug Logs & Instructions | ✅ Done | EventLog UI updated with i18n instructions |
+
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|
 | 0.1.0 | 2026-05-04 | Phase 1 | Backend foundation complete |

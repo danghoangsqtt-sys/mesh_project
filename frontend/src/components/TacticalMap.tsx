@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
@@ -17,6 +18,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
   center = [109.1967, 12.2388],
   zoom = 15 
 }) => {
+  const { t } = useTranslation();
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -159,12 +161,12 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
     >
       {!mapLoaded && (
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--color-text-muted)' }}>
-          Initializing Tactical Map...
+          Loading Tactical Map...
         </div>
       )}
       {mapLoaded && (
         <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.7)', padding: '8px', borderRadius: '4px', fontSize: '0.8rem' }}>
-          Pathfinding: {pathStart ? (pathEnd ? 'Path drawn' : 'Select end point') : 'Select start point'}
+          {t('pathfinding')}: {pathStart ? (pathEnd ? t('path_drawn') : t('select_end')) : t('select_start')}
         </div>
       )}
     </div>

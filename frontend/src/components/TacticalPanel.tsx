@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMeshStore, SoldierNode } from '../stores/useMeshStore';
 import { Activity, Thermometer, Droplets, Battery, AlertTriangle, Settings } from 'lucide-react';
 import NodeConfigModal from './NodeConfigModal';
 
 const TacticalPanel: React.FC = () => {
+  const { t } = useTranslation();
   const nodes = useMeshStore((state) => state.nodes);
   const nodeList = Object.values(nodes);
   const [selectedNode, setSelectedNode] = useState<number | null>(null);
@@ -64,25 +66,29 @@ const TacticalPanel: React.FC = () => {
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginTop: '8px', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Activity size={14} /> {node.heart_rate} bpm
+                  <Activity size={14} color={node.heart_rate < 60 || node.heart_rate > 100 ? 'var(--color-status-critical)' : 'inherit'} /> 
+                  <span title={t('heart_rate')}>{node.heart_rate} bpm</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Thermometer size={14} /> {node.temperature.toFixed(1)}°C
+                  <Droplets size={14} color={node.spo2 < 90 ? 'var(--color-status-critical)' : 'inherit'} /> 
+                  <span title={t('oxygen')}>{node.spo2}%</span>
                 </div>
-                {selectedNode === node.node_id && (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Droplets size={14} /> {node.humidity.toFixed(0)}%
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Battery size={14} /> {node.battery_voltage.toFixed(2)}V
-                    </div>
-                    <div style={{ gridColumn: '1 / -1', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                      Spo2: {node.spo2}% | GPS Fix: {node.flags.gps_fix ? 'Yes' : 'No'}
-                    </div>
-                  </>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Thermometer size={14} /> <span title={t('temp')}>{node.temperature.toFixed(1)}°C</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Battery size={14} color={node.battery_voltage < 3.3 ? 'var(--color-status-critical)' : 'inherit'} /> 
+                  <span title={t('battery')}>{node.battery_voltage.toFixed(2)}V</span>
+                </div>
               </div>
+              
+              {selectedNode === node.node_id && (
+                <>
+                  <div style={{ marginTop: '8px', fontSize: '0.8rem', color: 'var(--color-text-muted)', textAlign: 'right' }}>
+                    {t('last_seen')}: {new Date(node.last_seen).toLocaleTimeString()}
+                  </div>
+                </>
+              )}
             </div>
           ))
         )}

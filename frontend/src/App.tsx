@@ -1,5 +1,5 @@
 import React from 'react';
-import './index.css';
+import { useTranslation } from 'react-i18next';
 import TacticalMap from './components/TacticalMap';
 import TacticalPanel from './components/TacticalPanel';
 import EventLog from './components/EventLog';
@@ -8,16 +8,27 @@ import { useMeshStore } from './stores/useMeshStore';
 
 function App() {
   useWebSocket();
+  const { t, i18n } = useTranslation();
   const connectionStatus = useMeshStore((state) => state.connectionStatus);
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === 'en' ? 'vi' : 'en');
+  };
 
   return (
     <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header className="glass-panel" style={{ padding: 'var(--spacing-md)', margin: 'var(--spacing-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: 'var(--color-primary)' }}>Mesh Command</h1>
+          <h1 style={{ color: 'var(--color-primary)' }}>{t('dashboard_title')}</h1>
           <p style={{ color: 'var(--color-text-muted)' }}>Raspberry Pi 5 Server Dashboard</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <button onClick={toggleLanguage} style={{
+            background: 'none', border: '1px solid var(--color-border)', color: 'var(--color-text-main)',
+            padding: '4px 12px', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.875rem'
+          }}>
+            {i18n.language === 'en' ? '🇻🇳 Tiếng Việt' : '🇬🇧 English'}
+          </button>
           <div style={{
             width: 12, height: 12, borderRadius: '50%',
             backgroundColor: connectionStatus === 'connected' ? 'var(--color-status-ok)' : 

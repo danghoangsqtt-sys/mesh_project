@@ -25,12 +25,12 @@ export const useWebSocket = (url: string = 'ws://localhost:8000/ws') => {
           
           if (data.type === 'node_update') {
             updateNode(data.data as SoldierNode);
-          } else if (data.type === 'event' || data.type === 'SOS' || data.type === 'GEOFENCE_BREACH') {
+          } else if (data.type === 'EVENT' || data.type === 'event' || data.type === 'SOS' || data.type === 'GEOFENCE_BREACH') {
             // Transform to event interface
             addEvent({
               id: Date.now(), // Temporary ID until backend gives one
               node_id: data.data.node_id || null,
-              event_type: data.type,
+              event_type: data.data.event_type || data.type,
               severity: data.data.severity || 'WARNING',
               message: data.data.message || `${data.type} from Node ${data.data.node_id}`,
               created_at: new Date().toISOString()
