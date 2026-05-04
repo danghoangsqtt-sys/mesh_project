@@ -22,14 +22,14 @@
 | 1.5 | REST API Endpoints | ✅ Done | /api/nodes, events, commands, status |
 | 1.6 | WebSocket Real-time Stream | ✅ Done | Connection manager + broadcaster |
 
-## Backlog
-
-### Pending Requests
-| ID | Type | Title | Priority | Status |
-|----|------|-------|----------|--------|
-| — | — | — | — | — |
-
-## Version History
+### Phase 2 — React Web Dashboard (5/5 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 2.1 | Frontend Project Setup | ✅ Done | React + Vite + TS |
+| 2.2 | MapLibre GL JS + PMTiles Offline Map | ✅ Done | TacticalMap component |
+| 2.3 | WebSocket Client & State Management | ✅ Done | Zustand store + useWebSocket |
+| 2.4 | Tactical Panel UI | ✅ Done | Node list and vitals display |
+| 2.5 | Event Log & Alerts | ✅ Done | Event table display |
 
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|

@@ -1,24 +1,23 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-04T09:10:00+07:00",
-  "phase": "1",
-  "phase_name": "Pi 5 Foundation & Serial Bridge",
-  "task": "1.6",
-  "total_tasks": "6",
+  "timestamp": "2026-05-04T09:32:00+07:00",
+  "phase": "2",
+  "phase_name": "React Web Dashboard",
+  "task": "2.5",
+  "total_tasks": "5",
   "status": "done",
   "completed_tasks": [
-    "Project Setup & Backend Structure",
-    "Binary Packet Parser",
-    "Serial Bridge (pyserial + Thread)",
-    "SQLite Database & Models",
-    "REST API Endpoints",
-    "WebSocket Real-time Stream"
+    "Frontend Project Setup",
+    "MapLibre GL JS + PMTiles Offline Map",
+    "WebSocket Client & State Management",
+    "Tactical Panel UI",
+    "Event Log & Alerts"
   ],
   "remaining_tasks": [],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [],
   "uncommitted_files": [],
-  "next_action": "Start Phase 2 — React Web Dashboard",
-  "context_notes": "Phase 1 complete. Backend ready with FastAPI, serial bridge, packet parser, REST API, WebSocket, SQLite."
+  "next_action": "Start Phase 3 — Two-way Command & Node Management",
+  "context_notes": "Phase 2 complete. Frontend ready with TacticalMap, TacticalPanel, and EventLog."
 }
