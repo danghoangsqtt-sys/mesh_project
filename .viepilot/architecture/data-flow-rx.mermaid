@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant GW as Gateway Node
+    participant SER as Serial Thread
+    participant PARSER as PacketParser
+    participant Q as asyncio.Queue
+    participant REPO as Repository
+    participant DB as SQLite
+    participant WS as WebSocket
+    participant UI as Browser UI
+
+    GW->>SER: Serial bytes (0xAA + 40 bytes + 0x55)
+    SER->>PARSER: Raw byte buffer
+    PARSER->>PARSER: Validate CRC16-CCITT
+    PARSER->>Q: SoldierPacket (parsed)
+    Q->>REPO: Insert/Update
+    REPO->>DB: SQLAlchemy write
+    Q->>WS: Broadcast to clients
+    WS->>UI: JSON message
+    UI->>UI: Update map markers + panel

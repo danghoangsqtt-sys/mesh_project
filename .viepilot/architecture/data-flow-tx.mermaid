@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant UI as Browser UI
+    participant API as REST API
+    participant REPO as Repository
+    participant PARSER as PacketParser
+    participant SER as Serial Writer
+    participant GW as Gateway Node
+
+    UI->>API: POST /api/commands
+    API->>REPO: Validate + store command
+    REPO->>PARSER: Build packet + CRC16
+    PARSER->>SER: Frame: 0xAA + packet + 0x55
+    SER->>GW: Serial write
+    GW->>GW: LoRa broadcast
+    GW-->>SER: "TX: Message sent"
+    SER-->>API: ACK response
+    API-->>UI: Command status update

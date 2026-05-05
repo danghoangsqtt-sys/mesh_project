@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useMeshStore, SoldierNode, MeshEvent } from '../stores/useMeshStore';
+import { useMeshStore, type SoldierNode } from '../stores/useMeshStore';
 
 export const useWebSocket = (url: string = 'ws://localhost:8000/ws') => {
   const ws = useRef<WebSocket | null>(null);

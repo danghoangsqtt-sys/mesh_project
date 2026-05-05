@@ -228,7 +228,50 @@ Input: First 38 bytes (excluding crc16 field)
 | Data Flow (RX) | **required** | ✅ Above (sequence) |
 | Data Flow (TX) | **required** | ✅ Above (sequence) |
 | Module Dependencies | **required** | ✅ Backend structure above |
-| Deployment | **required** | Pi 5 single-device deployment |
+| Deployment | **required** | Added Mermaid block |
 | Event Flows | **optional** | Covered by data flow sequences |
 | User Use Case | **optional** | Single-user (commander) + multi-viewer |
-| ERD | **required** | See schemas/database-schema.sql |
+| ERD | **required** | Added Mermaid block (schemas/database-schema.sql) |
+
+## Deployment Sơ đồ
+
+```mermaid
+graph TD
+    subgraph Pi5["Raspberry Pi 5"]
+        OS["Raspberry Pi OS (Bookworm)"]
+        SVC["systemd: mesh-server.service"]
+        NGINX["Nginx Proxy (Port 80)"]
+        UVICORN["Uvicorn (Port 8000)"]
+        WIFI["NetworkManager (10.42.0.1)"]
+        
+        OS --> SVC
+        SVC --> UVICORN
+        OS --> NGINX
+        OS --> WIFI
+    end
+```
+
+## Entity Relationship Diagram (ERD)
+
+```mermaid
+erDiagram
+    SoldierEntity {
+        int id PK
+        string name
+        float battery
+    }
+    EventEntity {
+        int id PK
+        int soldier_id FK
+        string type
+        string message
+    }
+    CommandEntity {
+        int id PK
+        int node_id FK
+        string command
+        string status
+    }
+    SoldierEntity ||--o{ EventEntity : generates
+    SoldierEntity ||--o{ CommandEntity : receives
+```

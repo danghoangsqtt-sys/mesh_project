@@ -5,10 +5,10 @@
 | Field | Value |
 |-------|-------|
 | **Milestone** | Milestone 1 (v1.0.0) |
-| **Phase** | Phase 1 — Pi 5 Foundation & Serial Bridge |
-| **Status** | ✅ Done |
-| **Version** | 0.1.0 |
-| **Last Updated** | 2026-05-04 |
+| **Phase** | All Phases Completed |
+| **Status** | ✅ Completed |
+| **Version** | 1.0.0 |
+| **Last Updated** | 2026-05-05 |
 
 ## Progress Overview
 
@@ -66,6 +66,13 @@
 | 7.1 | Internationalization (i18n) | ✅ Done | i18next implemented in UI |
 | 7.2 | Vitals & Connectivity Alerts | ✅ Done | Backend vitals & timeout checker |
 | 7.3 | Smart Debug Logs & Instructions | ✅ Done | EventLog UI updated with i18n instructions |
+
+### Phase 8 — PMTiles Downloader & Tactical UI Redesign (3/3 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 8.1 | PMTiles Downloader Backend API | ✅ Done | API & WebSocket stream |
+| 8.2 | Map Manager Frontend UI | ✅ Done | Modal & Progress tracking |
+| 8.3 | Tactical UI Redesign | ✅ Done | Dark premium theme, health bars |
 
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|

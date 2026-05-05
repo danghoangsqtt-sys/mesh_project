@@ -1,0 +1,33 @@
+graph LR
+    subgraph SerialLayer["Serial Layer"]
+        THREAD["Serial Reader<br/>Thread (blocking)"]
+        QUEUE["asyncio.Queue<br/>(bridge)"]
+        PARSER["PacketParser<br/>40-byte protocol"]
+    end
+
+    subgraph APILayer["API Layer"]
+        REST["REST Endpoints<br/>/api/nodes<br/>/api/events<br/>/api/commands"]
+        WS["WebSocket<br/>/ws"]
+    end
+
+    subgraph DataLayer["Data Layer"]
+        REPO["Repository<br/>SoldierRepository"]
+        MODELS["SQLAlchemy Models<br/>SoldierEntity<br/>EventEntity"]
+        SQLITE[("SQLite<br/>WAL mode")]
+    end
+
+    subgraph FutureAI["AI Layer (Phase 5-6)"]
+        PATHFIND["A* Pathfinding"]
+        VISION["OpenCV/YOLO"]
+    end
+
+    THREAD -->|"raw bytes"| PARSER
+    PARSER -->|"SoldierPacket"| QUEUE
+    QUEUE --> WS
+    QUEUE --> REPO
+    REPO --> MODELS
+    MODELS --> SQLITE
+
+    REST --> REPO
+    PATHFIND --> REST
+    VISION --> REST

@@ -1,0 +1,16 @@
+[Unit]
+Description=Mesh Pi5 Server (FastAPI)
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/opt/mesh_pi5_server/backend
+ExecStart=/opt/mesh_pi5_server/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

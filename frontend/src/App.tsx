@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import TacticalMap from './components/TacticalMap';
 import TacticalPanel from './components/TacticalPanel';

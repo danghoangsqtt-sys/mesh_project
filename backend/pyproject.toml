@@ -1,6 +1,6 @@
 [project]
 name = "mesh-pi5-server"
-version = "0.1.0"
+version = "1.0.0"
 description = "Web-based Command & Control for LoRa Mesh Network on Raspberry Pi 5"
 readme = "README.md"
 license = {text = "MIT"}

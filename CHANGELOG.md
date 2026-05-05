@@ -6,7 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Fixed
+- **Critical:** Fixed `websocket_handler.py` importing non-existent `async_session_maker` (correct: `async_session`) — crashed the entire real-time event pipeline on first client connect.
+- **Critical:** Fixed `websocket_handler.py` calling non-existent `manager.broadcast_json()` (correct: `manager.broadcast_event()`) — prevented all AI alerts (Geofencing, Vitals, Vision) from reaching frontend clients.
+- Synced `APP_VERSION` in `config.py` to `1.0.0`.
+
+## [1.0.0] - 2026-05-05
 ### Added
+- **Phase 8:** PMTiles Downloader Backend API (background download from HTTP directly to Pi).
+- **Phase 8:** Map Manager Frontend UI for bounding box selection and progress tracking.
+- **Phase 8:** Tactical UI Redesign applying modern dark military theme and glow effects.
 - **Phase 5:** AI Pathfinding (A* Algorithm) using `networkx` on PMTiles offline map data.
 - **Phase 5:** Tactical Geofencing with `shapely` for real-time Point-in-Polygon boundary alerts.
 - **Phase 6:** Backend structural mock/stub for future Camera/YOLO Vision Integration.

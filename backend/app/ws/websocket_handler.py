@@ -20,7 +20,7 @@ router = APIRouter()
 
 from app.services.geofencing import geofencing_service
 from app.services.vitals import vitals_service
-from app.database import async_session_maker
+from app.database import async_session
 
 async def _packet_broadcaster():
     """Background task: consume packets from serial bridge queue and broadcast."""
@@ -46,20 +46,17 @@ async def _packet_broadcaster():
             
             # Save and broadcast events
             if all_events:
-                async with async_session_maker() as db:
+                async with async_session() as db:
                     for event in all_events:
                         db.add(event)
                     await db.commit()
                 
                 for event in all_events:
-                    await manager.broadcast_json({
-                        "type": "EVENT",
-                        "data": {
-                            "node_id": event.node_id,
-                            "event_type": event.event_type,
-                            "severity": event.severity,
-                            "message": event.message
-                        }
+                    await manager.broadcast_event("EVENT", {
+                        "node_id": event.node_id,
+                        "event_type": event.event_type,
+                        "severity": event.severity,
+                        "message": event.message
                     })
         except asyncio.CancelledError:
             break
@@ -74,20 +71,17 @@ async def _timeout_checker():
             await asyncio.sleep(10)
             timeout_events = vitals_service.check_timeouts()
             if timeout_events:
-                async with async_session_maker() as db:
+                async with async_session() as db:
                     for event in timeout_events:
                         db.add(event)
                     await db.commit()
                 
                 for event in timeout_events:
-                    await manager.broadcast_json({
-                        "type": "EVENT",
-                        "data": {
-                            "node_id": event.node_id,
-                            "event_type": event.event_type,
-                            "severity": event.severity,
-                            "message": event.message
-                        }
+                    await manager.broadcast_event("EVENT", {
+                        "node_id": event.node_id,
+                        "event_type": event.event_type,
+                        "severity": event.severity,
+                        "message": event.message
                     })
         except asyncio.CancelledError:
             break

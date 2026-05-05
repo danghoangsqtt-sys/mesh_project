@@ -1,0 +1,13 @@
+graph TD
+    subgraph Pi5["Raspberry Pi 5"]
+        OS["Raspberry Pi OS (Bookworm)"]
+        SVC["systemd: mesh-server.service"]
+        NGINX["Nginx Proxy (Port 80)"]
+        UVICORN["Uvicorn (Port 8000)"]
+        WIFI["NetworkManager (10.42.0.1)"]
+        
+        OS --> SVC
+        SVC --> UVICORN
+        OS --> NGINX
+        OS --> WIFI
+    end

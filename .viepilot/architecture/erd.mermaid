@@ -1,0 +1,20 @@
+erDiagram
+    SoldierEntity {
+        int id PK
+        string name
+        float battery
+    }
+    EventEntity {
+        int id PK
+        int soldier_id FK
+        string type
+        string message
+    }
+    CommandEntity {
+        int id PK
+        int node_id FK
+        string command
+        string status
+    }
+    SoldierEntity ||--o{ EventEntity : generates
+    SoldierEntity ||--o{ CommandEntity : receives

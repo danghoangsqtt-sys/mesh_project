@@ -218,3 +218,29 @@
 - Nâng cấp UI của Event Log: hiển thị rõ lý do sự cố và **hướng dẫn xử lý**.
 - Phân loại severity rõ ràng (INFO, WARNING, CRITICAL).
 - **Verification:** Event log hiển thị thông báo thân thiện với người dùng.
+
+---
+
+## Phase 8: PMTiles Downloader & Tactical UI Redesign (✅ Completed)
+**Goal:** Tích hợp bộ tải bản đồ Offline trực tiếp trên Pi và nâng cấp UI Web theo phong cách Android App.
+**Tasks:**
+- [x] Backend API tải PMTiles (`pmtiles extract` / `httpx`).
+- [x] Giao diện quản lý bản đồ (Bounding Box & WebSocket Progress).
+- [x] Thiết kế UI Tactical (Glassmorphism, Dark Military, Glow Effects).
+
+### Task 8.1 — PMTiles Downloader Backend API
+- Backend: Cấu hình API endpoint `/api/maps/download` trên FastAPI.
+- Tích hợp công cụ tải file `.pmtiles` ngầm (background task).
+- Tracking % tiến độ tải (phát qua WebSocket).
+- **Verification:** Gọi API và kiểm tra file `offline.pmtiles` được tải thành công vào thư mục `maps/`.
+
+### Task 8.2 — Map Manager Frontend UI
+- Thêm màn hình (Modal/Panel) "Map Manager" vào React Frontend.
+- UI: Cho phép nhập tọa độ Bounding Box hoặc chọn khu vực mẫu (VD: Nha Trang, Hà Nội...).
+- Hiển thị thanh tiến trình (Progress Bar) lắng nghe WebSocket.
+- **Verification:** Nhấn tải và thấy thanh chạy, khi xong Map tự động làm mới.
+
+### Task 8.3 — Tactical UI Redesign (Sync with Android App)
+- Chỉnh sửa bố cục Frontend (Panel, Header, Node List) cho chuyên nghiệp, khớp thiết kế Android.
+- Tinh chỉnh Color Theme (Dark Military, Neo-brutalism hoặc Glassmorphism tùy theo concept).
+- **Verification:** UI trông hiện đại, mượt mà và trực quan hơn.

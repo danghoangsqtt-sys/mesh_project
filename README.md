@@ -1,6 +1,6 @@
 # Mesh Pi5 Server
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi%205-red)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -55,7 +55,7 @@ Soldier Nodes ──(LoRa 433MHz)──► Gateway ──(USB)──► Raspberr
 
 ```bash
 # On Raspberry Pi 5
-git clone <repo-url> mesh_pi5_server
+git clone https://github.com/your-org/mesh_pi5_server.git mesh_pi5_server
 cd mesh_pi5_server
 chmod +x deploy/install.sh
 ./deploy/install.sh
@@ -86,7 +86,7 @@ npm run dev
 cd frontend
 npm run build
 # Copy dist/ to Pi 5
-rsync -avz dist/ pi@<pi-ip>:/opt/mesh_pi5_server/frontend/dist/
+rsync -avz dist/ pi@10.42.0.1:/opt/mesh_pi5_server/frontend/dist/
 ```
 
 ## Project Status

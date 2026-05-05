@@ -1,0 +1,40 @@
+graph TB
+    subgraph Field["Chiến trường"]
+        S1["Soldier Node 1<br/>T-Beam + Sensors"]
+        S2["Soldier Node 2<br/>T-Beam + Sensors"]
+        SN["Soldier Node N<br/>T-Beam + Sensors"]
+    end
+
+    subgraph Gateway["Gateway Node"]
+        GW["T-Beam Gateway<br/>LoRa 433MHz<br/>GPS + OLED"]
+    end
+
+    subgraph Pi5["Raspberry Pi 5 (4GB)"]
+        SERIAL["Serial Bridge<br/>pyserial Thread"]
+        FASTAPI["FastAPI Backend<br/>REST + WebSocket"]
+        DB[("SQLite DB<br/>WAL mode")]
+        NGINX["Nginx<br/>Static + Proxy"]
+        WIFI["WiFi AP<br/>NetworkManager"]
+        STATIC["React Build<br/>(dist/)"]
+    end
+
+    subgraph Clients["Client Devices"]
+        TAB["Tablet<br/>Browser"]
+        PHONE["Phone<br/>Browser"]
+        LAPTOP["Laptop<br/>Browser"]
+    end
+
+    S1 -->|"LoRa 433MHz"| GW
+    S2 -->|"LoRa 433MHz"| GW
+    SN -->|"LoRa 433MHz"| GW
+    GW -->|"USB Serial<br/>115200 baud"| SERIAL
+    SERIAL --> FASTAPI
+    FASTAPI --> DB
+    FASTAPI -->|"WebSocket /ws"| NGINX
+    FASTAPI -->|"REST /api/*"| NGINX
+    STATIC --> NGINX
+    NGINX -->|"WiFi AP"| WIFI
+
+    WIFI -.->|"http://10.42.0.1"| TAB
+    WIFI -.->|"http://10.42.0.1"| PHONE
+    WIFI -.->|"http://10.42.0.1"| LAPTOP

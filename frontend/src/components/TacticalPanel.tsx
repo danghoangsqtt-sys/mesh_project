@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMeshStore, SoldierNode } from '../stores/useMeshStore';
+import { useMeshStore, type SoldierNode } from '../stores/useMeshStore';
 import { Activity, Thermometer, Droplets, Battery, AlertTriangle, Settings } from 'lucide-react';
 import NodeConfigModal from './NodeConfigModal';
 
