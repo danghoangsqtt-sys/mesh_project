@@ -244,3 +244,25 @@
 - Chỉnh sửa bố cục Frontend (Panel, Header, Node List) cho chuyên nghiệp, khớp thiết kế Android.
 - Tinh chỉnh Color Theme (Dark Military, Neo-brutalism hoặc Glassmorphism tùy theo concept).
 - **Verification:** UI trông hiện đại, mượt mà và trực quan hơn.
+
+---
+
+## Phase 9 — Advanced 3D Terrain & Multi-color Vector Map
+
+**Mục tiêu:** Nâng cấp bản đồ offline chiến thuật lên mức cao nhất: hiển thị màu sắc địa hình phong phú, nhà cửa 3D và địa hình đồi núi thực tế (Terrain 3D) dựa trên công nghệ MapLibre.
+
+### Task 9.1 — Multi-color Vector Style (OSM Liberty Concept)
+- Cấu hình lại `style.json` của MapLibre (bỏ style LIGHT đơn sắc mặc định).
+- Áp dụng bảng màu phong phú: xanh lá cho thảm thực vật/công viên, xanh dương cho nước, phân loại màu cho từng cấp độ đường xá (như `AliFlux/VectorTileRenderer`).
+- **Verification:** Bản đồ vector hiển thị nhiều màu sắc sống động, dễ nhận diện các khu vực địa hình khác nhau.
+
+### Task 9.2 — 3D Buildings (Fill-extrusion)
+- Kích hoạt layer `fill-extrusion` trong MapLibre cho các vùng `building` từ `offline.pmtiles`.
+- Cấu hình độ cao tự động theo thuộc tính (hoặc default) và thêm đổ bóng sáng tối.
+- **Verification:** Khi xoay/nghiêng bản đồ (Right-click + Drag), nhà cửa hiện lên thành các khối 3D.
+
+### Task 9.3 — 3D Terrain (Digital Elevation Model)
+- Tải dữ liệu độ cao dạng `RGB DEM` (.pmtiles) cho khu vực hoạt động (VD: Nha Trang).
+- Lưu trữ vào `/opt/mesh_pi5_server/maps/terrain.pmtiles`.
+- Khai báo source `terrain` và kích hoạt `map.setTerrain()` với hệ số phóng đại (exaggeration) ~1.2 đến 1.5.
+- **Verification:** Bản đồ vệ tinh và vector uống cong theo dạng đồi núi thực tế. Dễ dàng quan sát các cao điểm chiến thuật.

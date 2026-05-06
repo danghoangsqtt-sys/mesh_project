@@ -212,13 +212,23 @@ Input: First 38 bytes (excluding crc16 field)
 | Platform | Raspberry Pi 5 (4GB) | Đủ mạnh cho server + AI, tiết kiệm năng lượng, nhỏ gọn triển khai thực địa |
 | Backend | Python FastAPI | Async native, WebSocket tích hợp, hệ sinh thái AI/ML (OpenCV, PyTorch) |
 | Frontend | React + Vite + TypeScript | Build nhanh, component architecture, type-safe |
-| Map | MapLibre GL JS + PMTiles | Vector tiles offline, đọc trực tiếp trong browser, không cần tile server |
+| Map Engine | MapLibre GL JS | Vector tiles offline, hỗ trợ 3D Terrain & Fill-extrusion (buildings), không cần tile server |
+| Map Data | PMTiles (Vector + Raster DEM) | Đóng gói toàn bộ tiles vào 1 file duy nhất, truy xuất HTTP Range Request cực nhanh offline |
+| Map Style | Custom Multi-color Vector | Mượn tư tưởng của `VectorTileRenderer` để tạo màu sắc thực địa rõ nét (OSM Liberty concept) |
 | Database | SQLite (WAL) | Nhẹ, không cần DB server, phù hợp nhúng |
 | Serial | pyserial + Thread | Đọc blocking I/O trong thread riêng, bridge qua asyncio.Queue |
 | Proxy | Nginx | Serve static + proxy API/WS, production-grade, ~5MB RAM |
 | WiFi AP | NetworkManager | Chuẩn Pi OS Bookworm, tự động DHCP/NAT |
 | AI Pathfinding | A* (Phase 5) | Tìm đường offline trên road network OSM |
 | AI Vision | OpenCV/YOLO (Phase 6) | Nhận diện mục tiêu từ camera Pi |
+
+## Advanced Map Rendering Engine (Phase 9)
+
+Hệ thống sử dụng **MapLibre GL JS** kết hợp với kiến trúc file **PMTiles** để đem đến trải nghiệm bản đồ tác chiến 3D hoàn toàn offline:
+
+1. **Multi-color Vector Styling:** Giao diện đường xá/công viên/sông ngòi được styling với nhiều màu sắc chuyên biệt (kế thừa triết lý từ `AliFlux/VectorTileRenderer`) để chỉ huy dễ dàng nhận diện cấu trúc địa lý thực địa.
+2. **3D Terrain (Đồi núi 3D):** Sử dụng file `terrain.pmtiles` chứa dữ liệu RGB DEM (Digital Elevation Model). Khi load vào MapLibre với cấu hình `terrain`, bề mặt bản đồ sẽ nổi lên thành đồi núi thực tế thay vì mặt phẳng 2D.
+3. **3D Buildings:** Kết hợp layer `fill-extrusion` đọc từ dữ liệu vector (OSM) để đẩy các tòa nhà thành khối 3D trên bản đồ, hỗ trợ quan sát góc nhìn chiến thuật trong khu dân cư.
 
 ## Diagram Applicability Matrix
 

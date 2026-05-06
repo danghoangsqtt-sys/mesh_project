@@ -45,6 +45,9 @@ Xây dựng hệ thống Web-based Command & Control trên Raspberry Pi 5 để 
 | 4 | WiFi AP Auto-Setup & Deploy | Script tự động AP, systemd, Nginx, install script |
 | 5 | AI Pathfinding | A* tìm đường ngắn nhất offline |
 | 6 | AI Vision Integration | OpenCV/YOLO nhận diện mục tiêu từ camera |
+| 7 | Vitals Alerts & i18n | Cảnh báo sinh hiệu, i18n đa ngôn ngữ |
+| 8 | PMTiles Downloader & UI Redesign | API kéo bản đồ, Tactical UI Design (Đã hoàn thành) |
+| 9 | Advanced 3D Terrain & Vector Map | Bản đồ đa sắc, 3D buildings, 3D terrain (RGB DEM) |
 
 ### Anti-goals
 - ❌ Không xây dựng App native (Android/iOS) — dùng trình duyệt web.
