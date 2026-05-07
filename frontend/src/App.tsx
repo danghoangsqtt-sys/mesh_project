@@ -20,7 +20,8 @@ function App() {
   const [selectedPort, setSelectedPort] = React.useState('AUTO');
   const [selectedBaud, setSelectedBaud] = React.useState('115200');
   const [isConnecting, setIsConnecting] = React.useState(false);
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  // Auto-collapse sidebar on narrow screens (e.g. Z Fold 3 folded = 344px)
+  const [sidebarOpen, setSidebarOpen] = React.useState(window.innerWidth > 500);
 
   const setNodes = useMeshStore(state => state.setNodes);
 
@@ -76,12 +77,23 @@ function App() {
   // Auto-fullscreen on mobile upon first interaction
   React.useEffect(() => {
     const handleFirstInteraction = () => {
-      // Only request fullscreen if not already in fullscreen and if we are likely on a mobile device
-      if (!document.fullscreenElement && /Mobi|Android/i.test(navigator.userAgent)) {
-        document.documentElement.requestFullscreen().catch((err) => {
-          console.warn(`Error attempting to enable fullscreen: ${err.message}`);
-        });
+      try {
+        const docEl = document.documentElement as any;
+        const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+        
+        // Only request fullscreen if not already in fullscreen and if we are likely on a mobile device
+        const isFullscreen = document.fullscreenElement || (document as any).webkitFullscreenElement || (document as any).mozFullScreenElement || (document as any).msFullscreenElement;
+        
+        if (requestFS && !isFullscreen && /Mobi|Android/i.test(navigator.userAgent)) {
+          const promise = requestFS.call(docEl);
+          if (promise && typeof promise.catch === 'function') {
+            promise.catch((err: any) => console.warn(`Fullscreen API error: ${err.message}`));
+          }
+        }
+      } catch (err) {
+        console.warn("Fullscreen attempt failed:", err);
       }
+      
       // Remove listeners after first interaction
       document.removeEventListener('touchstart', handleFirstInteraction);
       document.removeEventListener('click', handleFirstInteraction);
@@ -132,27 +144,35 @@ function App() {
         </button>
       </div>
 
-      {/* Right Side: ATAK-style Sidebar — collapsible */}
+      {/* Right Side: ATAK-style Sidebar — collapsible, overlay on mobile */}
       <div style={{
-        width: sidebarOpen ? 'clamp(300px, 420px, 95vw)' : '0',
+        width: sidebarOpen ? 'min(420px, 85vw)' : '0',
         minWidth: sidebarOpen ? undefined : '0',
-        overflow: sidebarOpen ? undefined : 'hidden',
+        overflow: sidebarOpen ? 'auto' : 'hidden',
         transition: 'width 0.25s ease',
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: '#3b4335',
         borderLeft: sidebarOpen ? '1px solid #2d3328' : 'none',
         color: '#e2e8f0',
-        zIndex: 20,
+        zIndex: 25,
         boxShadow: '-5px 0 15px rgba(0,0,0,0.5)',
         flexShrink: 0,
+        // On narrow screens, overlay the map
+        ...(window.innerWidth <= 500 && sidebarOpen ? {
+          position: 'absolute' as const,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: '85vw',
+        } : {}),
       }}>
         
         {/* Sidebar Header */}
-        <div style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2d3328', borderBottom: '1px solid #1a1f16' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '1.2rem' }}>⚔</span>
-            <span style={{ fontWeight: 'bold', letterSpacing: '1px', fontSize: '1.1rem', textTransform: 'uppercase' }}>{t('dashboard_title')}</span>
+        <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2d3328', borderBottom: '1px solid #1a1f16' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '1rem' }}>⚔</span>
+            <span style={{ fontWeight: 'bold', letterSpacing: '1px', fontSize: '0.9rem', textTransform: 'uppercase' }}>{t('dashboard_title')}</span>
           </div>
           <button onClick={() => setIsSettingsOpen(true)} style={{ background: 'none', border: 'none', color: '#a3b19b', cursor: 'pointer', fontSize: '1.2rem' }}>
             ⚙️

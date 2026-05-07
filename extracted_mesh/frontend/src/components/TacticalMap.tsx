@@ -336,7 +336,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
             filter: ['==', ['get', 'isZone'], true],
             layout: {
               'text-field': ['get', 'label'],
-              'text-size': 16,
+              'text-size': 11,
               'text-anchor': 'center',
               'text-font': ['Noto Sans Bold'],
               'text-allow-overlap': true,
@@ -820,7 +820,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       
       {/* Custom Drawing Toolbar - Bottom Left - Military Style */}
       {isMapLoaded && (
-         <div style={{ position: 'absolute', bottom: 20, left: 20, zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px', width: '260px' }}>
+         <div style={{ position: 'absolute', bottom: 20, left: 10, zIndex: 10, display: 'flex', flexDirection: 'column', gap: '6px', width: 'min(220px, calc(100vw - 60px))' }}>
             {activeMode && activeMode.startsWith('draw_') && (
                <div style={{ background: 'rgba(234, 179, 8, 0.9)', color: '#000', padding: '6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '4px', border: '1px solid #ca8a04' }}>
                   {t('click_to_draw')}
@@ -932,9 +932,26 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                       </div>
                     )}
                     <button 
-                       onClick={() => { drawRef.current?.trash(); setActiveMode('simple_select'); }}
+                       onClick={async () => {
+                         const draw = drawRef.current;
+                         if (!draw) return;
+                         // If a graphic is selected, delete it specifically
+                         if (selectedGraphic?.id) {
+                           // Delete from backend if it has a numeric DB id
+                           if (typeof selectedGraphic.id === 'number') {
+                             try { await fetch(`/api/tactical/${selectedGraphic.id}`, { method: 'DELETE' }); } catch (e) {}
+                           }
+                           draw.delete(String(selectedGraphic.id));
+                           setSelectedGraphic(null);
+                         } else {
+                           // Fallback: trash whatever is currently selected in draw
+                           draw.trash();
+                         }
+                         setActiveMode('simple_select');
+                         updateMarkerOverlayRef.current();
+                       }}
                        style={{ 
-                           background: 'transparent', color: '#ef4444', border: '1px solid #991b1b', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', textAlign: 'left' 
+                           background: 'transparent', color: '#ef4444', border: '1px solid #991b1b', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', textAlign: 'left' 
                        }}
                     >
                        ❌ {t('delete_selected')}
