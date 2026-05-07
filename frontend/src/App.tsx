@@ -73,6 +73,29 @@ function App() {
   };
 
 
+  // Auto-fullscreen on mobile upon first interaction
+  React.useEffect(() => {
+    const handleFirstInteraction = () => {
+      // Only request fullscreen if not already in fullscreen and if we are likely on a mobile device
+      if (!document.fullscreenElement && /Mobi|Android/i.test(navigator.userAgent)) {
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      }
+      // Remove listeners after first interaction
+      document.removeEventListener('touchstart', handleFirstInteraction);
+      document.removeEventListener('click', handleFirstInteraction);
+    };
+
+    document.addEventListener('touchstart', handleFirstInteraction, { passive: true });
+    document.addEventListener('click', handleFirstInteraction, { passive: true });
+
+    return () => {
+      document.removeEventListener('touchstart', handleFirstInteraction);
+      document.removeEventListener('click', handleFirstInteraction);
+    };
+  }, []);
+
   return (
     <div className="app-container" style={{ position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', background: '#1a1f16', overflow: 'hidden' }}>
       

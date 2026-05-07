@@ -328,7 +328,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
               'text-halo-width': 1.5
             }
           },
-          // ── Tactical zone labels (Polygons) ──
+          // ── Tactical zone labels (Polygons) — placed at NW corner, above the zone ──
           {
             id: 'tactical-zone-labels',
             type: 'symbol',
@@ -336,8 +336,9 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
             filter: ['==', ['get', 'isZone'], true],
             layout: {
               'text-field': ['get', 'label'],
-              'text-size': 16,
-              'text-anchor': 'center',
+              'text-size': 14,
+              'text-anchor': 'bottom-left',
+              'text-offset': [0.3, -0.4],
               'text-font': ['Noto Sans Bold'],
               'text-allow-overlap': true,
               'text-letter-spacing': 0.1
@@ -567,11 +568,14 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       }).catch(err => console.error('Failed to load graphics', err));
 
       const syncGraphic = async (feature: any) => {
+          // feature passed from draw.create lacks updated properties applied just before this call.
+          // Get the latest feature directly from MapboxDraw store.
+          const latestFeature = drawRef.current?.get(feature.id) || feature;
           const payload = {
-              graphic_type: feature.geometry.type,
+              graphic_type: latestFeature.geometry.type,
               name: 'Graphic',
               color: '#ef4444',
-              geojson_data: JSON.stringify(feature)
+              geojson_data: JSON.stringify(latestFeature)
           };
           
           if (typeof feature.id === 'number') {
@@ -584,9 +588,9 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                       body: JSON.stringify(payload)
                   });
                   const saved = await res.json();
-                  draw.delete(feature.id);
-                  feature.id = saved.id;
-                  draw.add(feature);
+                  drawRef.current?.delete(latestFeature.id);
+                  latestFeature.id = saved.id;
+                  drawRef.current?.add(latestFeature);
               } catch (err) {}
           }
       };
@@ -611,12 +615,14 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
               }
             });
           } else if (f.geometry.type === 'Polygon' && f.geometry.coordinates && f.geometry.coordinates[0]) {
-            // Calculate simple centroid for the polygon's outer ring
+            // Find northwest corner (min lng, max lat) for label at top-left above zone
             const ring = f.geometry.coordinates[0];
-            let lngSum = 0; let latSum = 0;
-            ring.forEach((coord: number[]) => { lngSum += coord[0]; latSum += coord[1]; });
-            const len = ring.length;
-            const centroid = [lngSum / len, latSum / len];
+            let minLng = Infinity, maxLat = -Infinity;
+            ring.forEach((coord: number[]) => {
+              if (coord[0] < minLng) minLng = coord[0];
+              if (coord[1] > maxLat) maxLat = coord[1];
+            });
+            const centroid = [minLng, maxLat];
             
             const zoneType = featureType || 'AREA';
             let labelText = zoneType;
@@ -883,6 +889,39 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                     >
                        📌 {t('draw_point')}
                     </button>
+                    {/* Zone type picker — always visible so user selects BEFORE drawing */}
+                    <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '4px', padding: '6px 8px' }}>
+                      <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Loại vùng:
+                      </div>
+                      <div style={{ display: 'flex', gap: '5px' }}>
+                        {([
+                          { value: 'SAFE ZONE', label: 'AN TOÀN', color: '#10b981' },
+                          { value: 'AREA',      label: 'CHUNG',    color: '#3b82f6' },
+                          { value: 'DANGER',    label: 'NGUY HIỂM', color: '#ef4444' },
+                        ] as const).map(opt => (
+                          <button
+                            type="button"
+                            key={opt.value}
+                            onClick={() => setGraphicType(opt.value)}
+                            style={{
+                              flex: 1,
+                              padding: '5px 4px',
+                              fontSize: '0.65rem',
+                              fontWeight: 'bold',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              border: graphicType === opt.value ? `2px solid ${opt.color}` : `1px solid ${opt.color}55`,
+                              background: graphicType === opt.value ? `${opt.color}33` : 'transparent',
+                              color: opt.color,
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <button
                        onClick={() => { drawRef.current?.changeMode('draw_polygon'); setActiveMode('draw_polygon'); }}
                        style={{
@@ -893,41 +932,6 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                     >
                        🔲 {t('draw_zone')}
                     </button>
-
-                    {/* Zone type picker — visible when polygon draw mode is active */}
-                    {activeMode === 'draw_polygon' && (
-                      <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '4px', padding: '6px 8px' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          Loại vùng:
-                        </div>
-                        <div style={{ display: 'flex', gap: '5px' }}>
-                          {([
-                            { value: 'SAFE ZONE', label: 'AN TOÀN', color: '#10b981' },
-                            { value: 'AREA',      label: 'CHUNG',    color: '#3b82f6' },
-                            { value: 'DANGER',    label: 'NGUY HIỂM', color: '#ef4444' },
-                          ] as const).map(opt => (
-                            <button
-                              key={opt.value}
-                              onClick={() => setGraphicType(opt.value)}
-                              style={{
-                                flex: 1,
-                                padding: '5px 4px',
-                                fontSize: '0.65rem',
-                                fontWeight: 'bold',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                border: graphicType === opt.value ? `2px solid ${opt.color}` : `1px solid ${opt.color}55`,
-                                background: graphicType === opt.value ? `${opt.color}33` : 'transparent',
-                                color: opt.color,
-                                transition: 'all 0.15s',
-                              }}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                     <button 
                        onClick={() => { drawRef.current?.trash(); setActiveMode('simple_select'); }}
                        style={{ 

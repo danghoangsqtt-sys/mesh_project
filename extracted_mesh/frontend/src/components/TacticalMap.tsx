@@ -567,11 +567,14 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       }).catch(err => console.error('Failed to load graphics', err));
 
       const syncGraphic = async (feature: any) => {
+          // feature passed from draw.create lacks updated properties applied just before this call.
+          // Get the latest feature directly from MapboxDraw store.
+          const latestFeature = drawRef.current?.get(feature.id) || feature;
           const payload = {
-              graphic_type: feature.geometry.type,
+              graphic_type: latestFeature.geometry.type,
               name: 'Graphic',
               color: '#ef4444',
-              geojson_data: JSON.stringify(feature)
+              geojson_data: JSON.stringify(latestFeature)
           };
           
           if (typeof feature.id === 'number') {
@@ -584,9 +587,9 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                       body: JSON.stringify(payload)
                   });
                   const saved = await res.json();
-                  draw.delete(feature.id);
-                  feature.id = saved.id;
-                  draw.add(feature);
+                  drawRef.current?.delete(latestFeature.id);
+                  latestFeature.id = saved.id;
+                  drawRef.current?.add(latestFeature);
               } catch (err) {}
           }
       };
