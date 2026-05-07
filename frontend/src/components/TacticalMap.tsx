@@ -224,8 +224,8 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       container: mapContainer.current,
       style: {
         version: 8,
-        // Use local font fallback to avoid 404 on missing PBF glyphs
-        glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
+        // Offline font glyphs served from Pi via nginx + tileserver fonts
+        glyphs: '/fonts/{fontstack}/{range}.pbf',
         sources: {
           'satellite': {
             type: 'raster',
