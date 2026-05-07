@@ -209,10 +209,9 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
   const graphicTypeRef = useRef<string>('POI');
   const updateMarkerOverlayRef = useRef<() => void>(() => {});
 
-  // Measure distance state
+  // Measure distance state — polyline multi-point (like Google Maps)
   const [measureMode, setMeasureMode] = useState(false);
   const [measurePoints, setMeasurePoints] = useState<[number, number][]>([]);
-  const [measureResult, setMeasureResult] = useState<{dist: number; bear: number; from: [number,number]; to: [number,number]} | null>(null);
   const [showNodeDistances, setShowNodeDistances] = useState(false);
   const measureModeRef = useRef(false);
 
@@ -223,32 +222,52 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
   useEffect(() => { graphicTypeRef.current = graphicType; }, [graphicType]);
   useEffect(() => { measureModeRef.current = measureMode; }, [measureMode]);
 
-  // Update measure line on map when points change
+  // Compute polyline measure data
+  const measureSegments = React.useMemo(() => {
+    if (measurePoints.length < 2) return { segments: [], totalDist: 0, totalBear: 0 };
+    let totalDist = 0;
+    const segments: { from: [number,number]; to: [number,number]; dist: number; bear: number; cumDist: number }[] = [];
+    for (let i = 0; i < measurePoints.length - 1; i++) {
+      const d = haversineDistance(measurePoints[i], measurePoints[i + 1]);
+      const b = bearing(measurePoints[i], measurePoints[i + 1]);
+      totalDist += d;
+      segments.push({ from: measurePoints[i], to: measurePoints[i + 1], dist: d, bear: b, cumDist: totalDist });
+    }
+    const totalBear = bearing(measurePoints[0], measurePoints[measurePoints.length - 1]);
+    return { segments, totalDist, totalBear };
+  }, [measurePoints]);
+
+  // Update measure polyline on map when points change
   useEffect(() => {
     const map = mapInstance.current;
     if (!map || !isMapLoaded) return;
     const src = map.getSource('measure-line') as maplibregl.GeoJSONSource;
     if (!src) return;
-    if (measurePoints.length === 2) {
-      const [p1, p2] = measurePoints;
-      const dist = haversineDistance(p1, p2);
-      const bear = bearing(p1, p2);
-      const mid: [number, number] = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
-      setMeasureResult({ dist, bear, from: p1, to: p2 });
-      src.setData({
-        type: 'FeatureCollection',
-        features: [
-          { type: 'Feature', geometry: { type: 'LineString', coordinates: [p1, p2] }, properties: {} },
-          { type: 'Feature', geometry: { type: 'Point', coordinates: mid }, properties: { label: `${formatDist(dist)} | ${bear.toFixed(0)}°` } },
-          { type: 'Feature', geometry: { type: 'Point', coordinates: p1 }, properties: { label: 'A' } },
-          { type: 'Feature', geometry: { type: 'Point', coordinates: p2 }, properties: { label: 'B' } },
-        ]
-      });
-    } else {
-      setMeasureResult(null);
-      src.setData({ type: 'FeatureCollection', features: [] });
+    if (measurePoints.length < 2) {
+      // Show point markers even if only 1 point
+      const features: any[] = measurePoints.map((p, i) => ({
+        type: 'Feature', geometry: { type: 'Point', coordinates: p },
+        properties: { label: `${i + 1}`, markerType: 'vertex' }
+      }));
+      src.setData({ type: 'FeatureCollection', features });
+      return;
     }
-  }, [measurePoints, isMapLoaded]);
+    const features: any[] = [];
+    // Full polyline
+    features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: measurePoints }, properties: {} });
+    // Segment midpoint labels
+    measureSegments.segments.forEach((seg, _i) => {
+      const mid: [number, number] = [(seg.from[0] + seg.to[0]) / 2, (seg.from[1] + seg.to[1]) / 2];
+      features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: mid },
+        properties: { label: formatDist(seg.dist), markerType: 'segment' } });
+    });
+    // Vertex markers (numbered)
+    measurePoints.forEach((p, i) => {
+      features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: p },
+        properties: { label: `${i + 1}`, markerType: 'vertex' } });
+    });
+    src.setData({ type: 'FeatureCollection', features });
+  }, [measurePoints, measureSegments, isMapLoaded]);
 
   // Auto node-to-node distance lines
   useEffect(() => {
@@ -690,13 +709,10 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       setTimeout(updateMarkerOverlay, 2000);
 
       map.on('click', async (e: any) => {
-        // Measure mode: collect points
+        // Measure mode: add points to polyline (unlimited)
         if (measureModeRef.current) {
           const pt: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-          setMeasurePoints(prev => {
-            if (prev.length >= 2) return [pt]; // Reset after 2 points
-            return [...prev, pt];
-          });
+          setMeasurePoints(prev => [...prev, pt]);
           return;
         }
         const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
@@ -906,7 +922,6 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                          const newMode = !measureMode;
                          setMeasureMode(newMode);
                          setMeasurePoints([]);
-                         setMeasureResult(null);
                          if (newMode) setActiveMode('measure');
                          else setActiveMode('simple_select');
                        }}
@@ -1011,28 +1026,49 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
         </div>
       )}
 
-      {/* Measure result popup */}
-      {measureResult && (
-        <div style={{ position: 'absolute', top: 10, right: 50, zIndex: 10, backgroundColor: 'rgba(15,23,42,0.95)', padding: '12px', borderRadius: '6px', color: '#f8fafc', border: '1px solid #b45309', minWidth: '200px', maxWidth: 'min(280px, 70vw)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+      {/* Measure result popup — polyline multi-point */}
+      {measureMode && measurePoints.length >= 1 && (
+        <div style={{ position: 'absolute', top: 10, right: 50, zIndex: 10, backgroundColor: 'rgba(15,23,42,0.95)', padding: '12px', borderRadius: '6px', color: '#f8fafc', border: '1px solid #b45309', minWidth: '220px', maxWidth: 'min(300px, 75vw)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
           <h4 style={{ margin: '0 0 8px 0', fontSize: '0.75rem', color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '1px' }}>
-             📏 KẾT QUẢ ĐO
+             📏 ĐO CỰ LY ({measurePoints.length} điểm)
           </h4>
-          <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '6px' }}>
-            {formatDist(measureResult.dist)}
+          {measurePoints.length < 2 ? (
+            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Click trên bản đồ để đo...</div>
+          ) : (
+            <>
+              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '4px' }}>
+                Tổng: {formatDist(measureSegments.totalDist)}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginBottom: '6px' }}>
+                Đường chim bay: {formatDist(haversineDistance(measurePoints[0], measurePoints[measurePoints.length - 1]))} | Phương vị: <span style={{ color: '#67e8f9' }}>{measureSegments.totalBear.toFixed(0)}°</span>
+              </div>
+              {measureSegments.segments.length <= 8 && (
+                <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '6px', borderTop: '1px solid #334155', paddingTop: '4px' }}>
+                  {measureSegments.segments.map((seg, i) => (
+                    <div key={i} style={{ fontSize: '0.65rem', color: '#64748b', display: 'flex', justifyContent: 'space-between', padding: '1px 0' }}>
+                      <span>Đoạn {i + 1}→{i + 2}</span>
+                      <span style={{ color: '#a3e635' }}>{formatDist(seg.dist)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+          <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+            <button 
+              onClick={() => setMeasurePoints(prev => prev.slice(0, -1))}
+              disabled={measurePoints.length === 0}
+              style={{ flex: 1, background: '#4b5563', color: '#fff', border: 'none', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem', opacity: measurePoints.length === 0 ? 0.4 : 1 }}
+            >
+              ↩ HOÀN TÁC
+            </button>
+            <button 
+              onClick={() => setMeasurePoints([])}
+              style={{ flex: 1, background: '#991b1b', color: '#fff', border: 'none', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem' }}
+            >
+              🗑 XÓA HẾT
+            </button>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>
-            Góc phương vị: <span style={{ color: '#67e8f9', fontWeight: 'bold' }}>{measureResult.bear.toFixed(1)}°</span>
-          </div>
-          <div style={{ fontSize: '0.65rem', color: '#64748b', lineHeight: '1.4' }}>
-            A: {measureResult.from[1].toFixed(5)}, {measureResult.from[0].toFixed(5)}<br/>
-            B: {measureResult.to[1].toFixed(5)}, {measureResult.to[0].toFixed(5)}
-          </div>
-          <button 
-            onClick={() => { setMeasurePoints([]); setMeasureResult(null); }}
-            style={{ marginTop: '8px', background: '#4b5563', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem', width: '100%' }}
-          >
-            ĐO LẠI
-          </button>
         </div>
       )}
     </div>
