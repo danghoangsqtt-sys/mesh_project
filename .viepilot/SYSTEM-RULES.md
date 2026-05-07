@@ -73,8 +73,23 @@ for item in items:
 - [ ] Frontend: `npm run build` succeeds
 - [ ] Tests: `pytest` passes (when test suite exists)
 
-### Before phase complete:
-- [ ] All acceptance criteria met
-- [ ] CHANGELOG updated
-- [ ] TRACKER.md updated
-- [ ] No TODO/FIXME in committed code (unless tracked)
+    - [ ] No TODO/FIXME in committed code (unless tracked)
+
+## ⚠️ Deployment & Push Rules (CRITICAL)
+
+> **AI Agent Constraint — Không được tự động push lên GitHub remote mà không có lệnh rõ ràng từ user.**
+
+### Rule: Human-gated Remote Push
+
+1. **Commit locally = OK** — AI có thể tự `git add` và `git commit` vào local repo để lưu tiến trình.
+2. **Push lên remote = PHẢI HỎI trước** — AI KHÔNG được tự chạy `git push` nếu không có lệnh rõ ràng từ user trong lần đó.
+3. **Quy trình chuẩn:**
+   - AI commit local → thông báo rõ "đã commit local, chờ bạn test"
+   - User test trên Pi hoặc môi trường thực
+   - User nói "push đi" / "đẩy lên github" → AI mới thực hiện push
+4. **Lý do:** Push sai có thể ghi đè code đang chạy trên Pi, mất hotfix, hoặc ảnh hưởng toàn bộ hệ thống chiến thuật đang hoạt động.
+
+### Exceptions (chỉ push tự động khi):
+- User dùng lệnh `/vp-auto` với ý định rõ ràng là deploy/backup
+- User nói tường minh "push ngay", "đẩy lên github luôn" trong cùng turn đó
+

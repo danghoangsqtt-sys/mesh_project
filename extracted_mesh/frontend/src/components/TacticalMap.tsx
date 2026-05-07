@@ -597,13 +597,17 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
         const overlayFeatures: any[] = [];
         
         allFeatures.features.forEach((f: any) => {
+          // MapboxDraw stores user properties with 'user_' prefix internally,
+          // but getAll() returns them WITHOUT prefix. Read both just in case.
+          const featureType = f.properties?.type || f.properties?.user_type || '';
+
           if (f.geometry.type === 'Point') {
             overlayFeatures.push({
               type: 'Feature',
               geometry: f.geometry,
               properties: {
-                icon: f.properties?.['marker-icon'] || 'pin-soldier',
-                label: f.properties?.type || ''
+                icon: f.properties?.['marker-icon'] || f.properties?.['user_marker-icon'] || 'pin-soldier',
+                label: featureType || ''
               }
             });
           } else if (f.geometry.type === 'Polygon' && f.geometry.coordinates && f.geometry.coordinates[0]) {
@@ -614,7 +618,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
             const len = ring.length;
             const centroid = [lngSum / len, latSum / len];
             
-            const zoneType = f.properties?.type || 'AREA';
+            const zoneType = featureType || 'AREA';
             let labelText = zoneType;
             if (zoneType === 'SAFE ZONE') labelText = t('safe_zone') || 'VÙNG AN TOÀN';
             if (zoneType === 'DANGER') labelText = t('danger_zone') || 'VÙNG NGUY HIỂM';
@@ -944,20 +948,25 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
           </h4>
           <div style={{ marginBottom: '8px' }}>
              <select 
-                value={graphicType}
+                value={selectedGraphic.properties?.type || selectedGraphic.properties?.user_type || graphicType}
                 onChange={(e) => {
                    const newType = e.target.value;
                    setGraphicType(newType);
                    const draw = drawRef.current;
                    if (draw && selectedGraphic?.id) {
-                       draw.setFeatureProperty(selectedGraphic.id, 'type', newType);
-                       // Force MapboxDraw to re-evaluate style expressions for the updated property.
-                       // Toggling simple_select with the feature ID triggers a full re-render.
                        const fid = selectedGraphic.id;
+                       // Set the feature property FIRST
+                       draw.setFeatureProperty(fid, 'type', newType);
+                       // Then force MapboxDraw to re-evaluate style expressions:
+                       // 1. Deselect completely so the feature goes to 'inactive' state
                        draw.changeMode('simple_select', { featureIds: [] });
+                       // 2. On next frame, re-select — this triggers a full style repaint
                        requestAnimationFrame(() => {
                            draw.changeMode('simple_select', { featureIds: [fid] });
-                           updateMarkerOverlayRef.current();
+                           // Also trigger a second repaint after a short delay for reliability
+                           setTimeout(() => {
+                               updateMarkerOverlayRef.current();
+                           }, 50);
                        });
                    }
                 }}

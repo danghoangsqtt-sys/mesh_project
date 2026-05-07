@@ -20,6 +20,7 @@ function App() {
   const [selectedPort, setSelectedPort] = React.useState('AUTO');
   const [selectedBaud, setSelectedBaud] = React.useState('115200');
   const [isConnecting, setIsConnecting] = React.useState(false);
+  const [sidebarOpen, setSidebarOpen] = React.useState(true);
 
   const setNodes = useMeshStore(state => state.setNodes);
 
@@ -76,12 +77,53 @@ function App() {
     <div className="app-container" style={{ position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', background: '#1a1f16', overflow: 'hidden' }}>
       
       {/* Left Side: Map */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
         <TacticalMap />
+
+        {/* Sidebar toggle button — always visible, floats on map edge */}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          title={sidebarOpen ? 'Thu gọn bảng điều khiển' : 'Mở bảng điều khiển'}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            right: 0,
+            transform: 'translateY(-50%)',
+            zIndex: 30,
+            background: '#3b4335',
+            border: '1px solid #4d7c0f',
+            borderRight: 'none',
+            color: '#bef264',
+            width: '22px',
+            height: '60px',
+            borderRadius: '6px 0 0 6px',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '-2px 0 8px rgba(0,0,0,0.4)',
+          }}
+        >
+          {sidebarOpen ? '▶' : '◀'}
+        </button>
       </div>
 
-      {/* Right Side: ATAK-style Sidebar */}
-      <div style={{ width: '420px', display: 'flex', flexDirection: 'column', backgroundColor: '#3b4335', borderLeft: '1px solid #2d3328', color: '#e2e8f0', zIndex: 20, boxShadow: '-5px 0 15px rgba(0,0,0,0.5)' }}>
+      {/* Right Side: ATAK-style Sidebar — collapsible */}
+      <div style={{
+        width: sidebarOpen ? 'clamp(300px, 420px, 95vw)' : '0',
+        minWidth: sidebarOpen ? undefined : '0',
+        overflow: sidebarOpen ? undefined : 'hidden',
+        transition: 'width 0.25s ease',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#3b4335',
+        borderLeft: sidebarOpen ? '1px solid #2d3328' : 'none',
+        color: '#e2e8f0',
+        zIndex: 20,
+        boxShadow: '-5px 0 15px rgba(0,0,0,0.5)',
+        flexShrink: 0,
+      }}>
         
         {/* Sidebar Header */}
         <div style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2d3328', borderBottom: '1px solid #1a1f16' }}>
