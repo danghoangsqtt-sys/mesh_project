@@ -84,3 +84,5 @@
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|
 | 0.1.0 | 2026-05-04 | Phase 1 | Backend foundation complete |
+| 1.0.0 | 2026-05-07 | Phase 1-9 | All phases complete, v1.0.0 released |
+| 1.0.1 | 2026-05-07 | Hotfix | Zone color visualization fix deployed |

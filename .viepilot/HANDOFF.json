@@ -1,11 +1,11 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-07T14:10:00+07:00",
-  "phase": "hotfix-zone-visualization",
-  "phase_name": "Hotfix: Zone Color Visualization",
-  "task": "zone-colors-fix",
-  "total_tasks": "1",
-  "status": "paused",
+  "timestamp": "2026-05-07T21:13:00+07:00",
+  "phase": "milestone-1-complete",
+  "phase_name": "Milestone 1 — v1.0.0 Complete",
+  "task": "none",
+  "total_tasks": "0",
+  "status": "completed",
   "completed_tasks": [
     "zone-colors-fix: Phân tích bug MapboxDraw user_type property không render",
     "zone-colors-fix: Thêm graphicTypeRef để track loại vùng trong callbacks",
@@ -16,17 +16,9 @@
     "zone-colors-fix: Deploy lên Pi 10.42.0.1 via deploy_to_pi.py (user=pi)",
     "zone-colors-fix: Xác nhận mesh-server.service active (running)"
   ],
-  "remaining_tasks": [
-    "Verify trực tiếp trên Pi: vẽ polygon mới → chọn AN TOÀN → confirm màu xanh",
-    "Verify: đổi loại vùng via dropdown → màu cập nhật ngay (không cần reload)",
-    "Kiểm tra zones đã vẽ từ session cũ — có thể vẫn hiện đỏ vì thiếu type property"
-  ],
+  "remaining_tasks": [],
   "blockers": [],
-  "human_actions_pending": [
-    "Test: Mở app, click KHOANH VÙNG, chọn AN TOÀN, vẽ polygon → phải xanh ngay",
-    "Test: Chọn polygon cũ đỏ → đổi dropdown sang AN TOÀN → phải xanh ngay",
-    "Nếu vùng cũ vẫn đỏ: xóa và vẽ lại để apply fix"
-  ],
+  "human_actions_pending": [],
   "decisions": [
     "Dùng requestAnimationFrame để defer changeMode sau setFeatureProperty — đảm bảo MapboxDraw store được update trước khi re-render.",
     "Dùng updateMarkerOverlayRef để expose closure function ra ngoài useEffect scope.",
@@ -46,6 +38,6 @@
     "extracted_mesh/frontend/src/i18n.ts",
     "extracted_mesh/frontend/src/stores/useMeshStore.ts"
   ],
-  "next_action": "Test thực tế: mở browser vào Pi, click KHOANH VÙNG, xem zone picker 3 màu xuất hiện, vẽ vùng, confirm màu đúng.",
-  "context_notes": "Bug root cause: MapboxDraw render styles dùng ['get', 'user_type'] nhưng property này chỉ được set sau khi user chọn dropdown — polygon vừa vẽ xong chưa có type nên fall-through về màu default (cam active, đỏ inactive). Fix: set type ngay trong draw.create event từ graphicTypeRef, và force re-render bằng changeMode toggle sau setFeatureProperty. Đã deploy thành công. Screenshot cuối cho thấy polygon đỏ — có thể là DANGER zone đúng màu, hoặc zone cũ từ trước fix. Cần verify."
+  "next_action": "Bắt đầu Milestone 2: /vp-evolve để lên kế hoạch Phase 10+ (Node Markers on Map, Tactical Messaging, Dynamic Zone Mgmt).",
+  "context_notes": "Milestone 1 (v1.0.0) COMPLETED. Phase 1-9 done. Hotfix zone-visualization deployed và verified thành công. Frontend codebase đã được merge từ extracted_mesh/frontend vào frontend/. Node markers đã được thêm vào TacticalMap. Dự án sẵn sàng cho Milestone 2."
 }
