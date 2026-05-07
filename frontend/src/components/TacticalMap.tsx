@@ -182,7 +182,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
   const [selectedMarkerIcon, setSelectedMarkerIcon] = useState<string>('pin-soldier');
   const drawRef = useRef<any>(null);
   const selectedMarkerIconRef = useRef<string>('pin-soldier');
-  const graphicTypeRef = useRef<string>('SAFE ZONE');
+  const graphicTypeRef = useRef<string>('POI');
   const updateMarkerOverlayRef = useRef<() => void>(() => {});
 
   // Sync state to refs
@@ -224,8 +224,8 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       container: mapContainer.current,
       style: {
         version: 8,
-        // Local font glyphs served from Pi — fully offline label rendering
-        glyphs: '/fonts/{fontstack}/{range}.pbf',
+        // Use local font fallback to avoid 404 on missing PBF glyphs
+        glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
         sources: {
           'satellite': {
             type: 'raster',
@@ -328,33 +328,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
               'text-halo-width': 1.5
             }
           },
-          // ── Tactical zone labels (Polygons) ──
-          {
-            id: 'tactical-zone-labels',
-            type: 'symbol',
-            source: 'tactical-markers',
-            filter: ['==', ['get', 'isZone'], true],
-            layout: {
-              'text-field': ['get', 'label'],
-              'text-size': 11,
-              'text-anchor': 'center',
-              'text-font': ['Noto Sans Bold'],
-              'text-allow-overlap': true,
-              'text-letter-spacing': 0.1
-            },
-            paint: {
-              'text-color': [
-                  'match',
-                  ['get', 'zoneType'],
-                  'SAFE ZONE', '#10b981', // green
-                  'DANGER', '#ef4444',    // red
-                  'AREA', '#3b82f6',      // blue
-                  '#ffffff'
-              ],
-              'text-halo-color': '#0f172a',
-              'text-halo-width': 2.5
-            }
-          }
+          // Zone labels removed — zone feature disabled
         ]
       },
       center: center,
@@ -432,73 +406,8 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       const draw = new MapboxDraw({
         displayControlsDefault: false,
         styles: [
-          // ── POLYGON FILL — high contrast ──
-          {
-            'id': 'gl-draw-polygon-fill-active',
-            'type': 'fill',
-            'filter': ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],
-            'paint': { 
-                'fill-color': [
-                    'match',
-                    ['get', 'user_type'],
-                    'SAFE ZONE', '#10b981',
-                    'DANGER', '#ef4444',
-                    'AREA', '#3b82f6',
-                    '#f59e0b'
-                ], 
-                'fill-opacity': 0.5 
-            }
-          },
-          {
-            'id': 'gl-draw-polygon-fill-inactive',
-            'type': 'fill',
-            'filter': ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'false']],
-            'paint': { 
-                'fill-color': [
-                    'match',
-                    ['get', 'user_type'],
-                    'SAFE ZONE', '#10b981',
-                    'DANGER', '#ef4444',
-                    'AREA', '#3b82f6',
-                    '#ef4444'
-                ], 
-                'fill-opacity': 0.35 
-            }
-          },
-          // ── POLYGON STROKE ──
-          {
-            'id': 'gl-draw-polygon-stroke-active',
-            'type': 'line',
-            'filter': ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],
-            'paint': { 
-                'line-color': [
-                    'match',
-                    ['get', 'user_type'],
-                    'SAFE ZONE', '#059669',
-                    'DANGER', '#dc2626',
-                    'AREA', '#2563eb',
-                    '#f59e0b'
-                ], 
-                'line-width': 4, 
-                'line-dasharray': [2, 1] 
-            }
-          },
-          {
-            'id': 'gl-draw-polygon-stroke-inactive',
-            'type': 'line',
-            'filter': ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'false']],
-            'paint': { 
-                'line-color': [
-                    'match',
-                    ['get', 'user_type'],
-                    'SAFE ZONE', '#059669',
-                    'DANGER', '#dc2626',
-                    'AREA', '#2563eb',
-                    '#dc2626'
-                ], 
-                'line-width': 3 
-            }
-          },
+          // Polygon styles removed — zone feature disabled
+          // Polygon stroke styles removed — zone feature disabled
           // ── LINE ──
           {
             'id': 'gl-draw-line-active',
@@ -613,31 +522,8 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                 label: featureType || ''
               }
             });
-          } else if (f.geometry.type === 'Polygon' && f.geometry.coordinates && f.geometry.coordinates[0]) {
-            // Calculate simple centroid for the polygon's outer ring
-            const ring = f.geometry.coordinates[0];
-            let lngSum = 0; let latSum = 0;
-            ring.forEach((coord: number[]) => { lngSum += coord[0]; latSum += coord[1]; });
-            const len = ring.length;
-            const centroid = [lngSum / len, latSum / len];
-            
-            const zoneType = featureType || 'AREA';
-            let labelText = zoneType;
-            if (zoneType === 'SAFE ZONE') labelText = t('safe_zone') || 'VÙNG AN TOÀN';
-            if (zoneType === 'DANGER') labelText = t('danger_zone') || 'VÙNG NGUY HIỂM';
-            if (zoneType === 'AREA') labelText = t('general_area') || 'VÙNG CHUNG';
-            
-            overlayFeatures.push({
-              type: 'Feature',
-              geometry: { type: 'Point', coordinates: centroid },
-              properties: {
-                icon: '',
-                label: labelText,
-                isZone: true,
-                zoneType: zoneType
-              }
-            });
           }
+          // Polygon/zone overlay removed — zone feature disabled
         });
         
         const src = map.getSource('tactical-markers') as maplibregl.GeoJSONSource;
@@ -651,9 +537,6 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
          e.features.forEach((feat: any) => {
            if (feat.geometry.type === 'Point') {
              drawRef.current?.setFeatureProperty(feat.id, 'marker-icon', selectedMarkerIconRef.current);
-           } else if (feat.geometry.type === 'Polygon') {
-             // Apply the pre-selected zone type immediately so colours render correctly
-             drawRef.current?.setFeatureProperty(feat.id, 'type', graphicTypeRef.current);
            }
            syncGraphic(feat);
          });
@@ -675,7 +558,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
          if (e.features.length > 0) {
              const feat = e.features[0];
              setSelectedGraphic(feat);
-             setGraphicType(feat.properties?.type || (feat.geometry.type === 'Point' ? 'LZ' : 'SAFE ZONE'));
+             setGraphicType(feat.properties?.type || (feat.geometry.type === 'Point' ? 'LZ' : ''));
          } else {
              setSelectedGraphic(null);
          }
@@ -886,65 +769,17 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                     >
                        📌 {t('draw_point')}
                     </button>
-                    <button
-                       onClick={() => { drawRef.current?.changeMode('draw_polygon'); setActiveMode('draw_polygon'); }}
-                       style={{
-                           background: activeMode === 'draw_polygon' ? '#4d7c0f' : 'transparent',
-                           color: activeMode === 'draw_polygon' ? '#fff' : '#a3a8b4',
-                           border: '1px solid #4d7c0f', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s'
-                       }}
-                    >
-                       🔲 {t('draw_zone')}
-                    </button>
-
-                    {/* Zone type picker — visible when polygon draw mode is active */}
-                    {activeMode === 'draw_polygon' && (
-                      <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '4px', padding: '6px 8px' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          Loại vùng:
-                        </div>
-                        <div style={{ display: 'flex', gap: '5px' }}>
-                          {([
-                            { value: 'SAFE ZONE', label: 'AN TOÀN', color: '#10b981' },
-                            { value: 'AREA',      label: 'CHUNG',    color: '#3b82f6' },
-                            { value: 'DANGER',    label: 'NGUY HIỂM', color: '#ef4444' },
-                          ] as const).map(opt => (
-                            <button
-                              key={opt.value}
-                              onClick={() => setGraphicType(opt.value)}
-                              style={{
-                                flex: 1,
-                                padding: '5px 4px',
-                                fontSize: '0.65rem',
-                                fontWeight: 'bold',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                border: graphicType === opt.value ? `2px solid ${opt.color}` : `1px solid ${opt.color}55`,
-                                background: graphicType === opt.value ? `${opt.color}33` : 'transparent',
-                                color: opt.color,
-                                transition: 'all 0.15s',
-                              }}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                     <button 
                        onClick={async () => {
                          const draw = drawRef.current;
                          if (!draw) return;
-                         // If a graphic is selected, delete it specifically
                          if (selectedGraphic?.id) {
-                           // Delete from backend if it has a numeric DB id
                            if (typeof selectedGraphic.id === 'number') {
                              try { await fetch(`/api/tactical/${selectedGraphic.id}`, { method: 'DELETE' }); } catch (e) {}
                            }
                            draw.delete(String(selectedGraphic.id));
                            setSelectedGraphic(null);
                          } else {
-                           // Fallback: trash whatever is currently selected in draw
                            draw.trash();
                          }
                          setActiveMode('simple_select');
@@ -961,12 +796,12 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
          </div>
       )}
 
-      {isMapLoaded && selectedGraphic && (
-        <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 10, backgroundColor: 'rgba(15,23,42,0.9)', padding: '16px', borderRadius: '6px', color: '#f8fafc', border: '1px solid #4d7c0f', minWidth: '280px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
-          <h4 style={{ margin: '0 0 8px 0', fontSize: '0.8rem', color: '#bef264', textTransform: 'uppercase', letterSpacing: '1px' }}>
-             {selectedGraphic.geometry.type === 'Point' ? t('selected_point') : t('selected_zone')}
+      {isMapLoaded && selectedGraphic && selectedGraphic.geometry.type === 'Point' && (
+        <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 10, backgroundColor: 'rgba(15,23,42,0.9)', padding: '12px', borderRadius: '6px', color: '#f8fafc', border: '1px solid #4d7c0f', minWidth: '220px', maxWidth: 'min(280px, 80vw)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+          <h4 style={{ margin: '0 0 6px 0', fontSize: '0.75rem', color: '#bef264', textTransform: 'uppercase', letterSpacing: '1px' }}>
+             {t('selected_point')}
           </h4>
-          <div style={{ marginBottom: '8px' }}>
+          <div style={{ marginBottom: '6px' }}>
              <select 
                 value={selectedGraphic.properties?.type || selectedGraphic.properties?.user_type || graphicType}
                 onChange={(e) => {
@@ -974,55 +809,26 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                    setGraphicType(newType);
                    const draw = drawRef.current;
                    if (draw && selectedGraphic?.id) {
-                       const fid = selectedGraphic.id;
-                       // Set the feature property FIRST
-                       draw.setFeatureProperty(fid, 'type', newType);
-                       // Then force MapboxDraw to re-evaluate style expressions:
-                       // 1. Deselect completely so the feature goes to 'inactive' state
-                       draw.changeMode('simple_select', { featureIds: [] });
-                       // 2. On next frame, re-select — this triggers a full style repaint
-                       requestAnimationFrame(() => {
-                           draw.changeMode('simple_select', { featureIds: [fid] });
-                           // Also trigger a second repaint after a short delay for reliability
-                           setTimeout(() => {
-                               updateMarkerOverlayRef.current();
-                           }, 50);
-                       });
+                       draw.setFeatureProperty(selectedGraphic.id, 'type', newType);
+                       updateMarkerOverlayRef.current();
                    }
                 }}
-                style={{ width: '100%', padding: '4px', background: '#1e293b', color: '#f8fafc', border: '1px solid #475569', borderRadius: '4px', fontSize: '0.8rem' }}
+                style={{ width: '100%', padding: '4px', background: '#1e293b', color: '#f8fafc', border: '1px solid #475569', borderRadius: '4px', fontSize: '0.75rem' }}
              >
-                {selectedGraphic.geometry.type === 'Point' ? (
-                   <>
-                     <option value="LZ">{t('lz')}</option>
-                     <option value="EX">{t('ex')}</option>
-                     <option value="RV">{t('rv')}</option>
-                     <option value="BASE">{t('base')}</option>
-                     <option value="POI">{t('poi')}</option>
-                   </>
-                ) : (
-                   <>
-                     <option value="SAFE ZONE">{t('safe_zone')}</option>
-                     <option value="DANGER">{t('danger_zone')}</option>
-                     <option value="AREA">{t('general_area')}</option>
-                   </>
-                )}
+                <option value="LZ">{t('lz')}</option>
+                <option value="EX">{t('ex')}</option>
+                <option value="RV">{t('rv')}</option>
+                <option value="BASE">{t('base')}</option>
+                <option value="POI">{t('poi')}</option>
              </select>
           </div>
-          <p style={{ margin: '0 0 8px 0', fontSize: '0.8rem', color: '#9ca3af', wordBreak: 'break-all' }}>
-            {selectedGraphic.geometry.type === 'Point' 
-               ? `${selectedGraphic.geometry.coordinates[1].toFixed(5)}, ${selectedGraphic.geometry.coordinates[0].toFixed(5)}`
-               : `Polygon (${selectedGraphic.geometry.coordinates[0].length} points)`}
+          <p style={{ margin: '0 0 6px 0', fontSize: '0.75rem', color: '#9ca3af', wordBreak: 'break-all' }}>
+            {`${selectedGraphic.geometry.coordinates[1].toFixed(5)}, ${selectedGraphic.geometry.coordinates[0].toFixed(5)}`}
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button 
               onClick={() => {
-                  let coordText = '';
-                  if (selectedGraphic.geometry.type === 'Point') {
-                      coordText = `${selectedGraphic.geometry.coordinates[1].toFixed(5)}, ${selectedGraphic.geometry.coordinates[0].toFixed(5)}`;
-                  } else {
-                      coordText = `Polygon Center`;
-                  }
+                  const coordText = `${selectedGraphic.geometry.coordinates[1].toFixed(5)}, ${selectedGraphic.geometry.coordinates[0].toFixed(5)}`;
                   const textToHex = (text: string) => text.split('').map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
                   const payload = { target_node_id: 65535, command_type: 'BROADCAST', payload_hex: textToHex(`[${graphicType}] ${coordText}`) };
                   fetch('/api/commands', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -1033,9 +839,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
             </button>
             <button 
                onClick={() => {
-                  const val = selectedGraphic.geometry.type === 'Point' 
-                      ? `${selectedGraphic.geometry.coordinates[1].toFixed(5)}, ${selectedGraphic.geometry.coordinates[0].toFixed(5)}`
-                      : JSON.stringify(selectedGraphic.geometry.coordinates);
+                  const val = `${selectedGraphic.geometry.coordinates[1].toFixed(5)}, ${selectedGraphic.geometry.coordinates[0].toFixed(5)}`;
                   navigator.clipboard.writeText(val);
                }}
                style={{ background: '#4b5563', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
