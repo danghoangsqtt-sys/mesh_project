@@ -378,8 +378,12 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
           },
           ...getCustomLayers(), // Custom Multi-color Vector overlay & 3D buildings
           {
+            id: 'ai-path-glow', type: 'line', source: 'ai-path',
+            paint: { 'line-color': '#00ff88', 'line-width': 8, 'line-blur': 6, 'line-opacity': 0.4 }
+          },
+          {
             id: 'ai-path-line', type: 'line', source: 'ai-path',
-            paint: { 'line-color': '#0ea5e9', 'line-width': 4 }
+            paint: { 'line-color': '#00ff88', 'line-width': 3, 'line-dasharray': [2, 1] }
           },
           {
             id: 'mesh-nodes-circle', type: 'circle', source: 'mesh-nodes',
@@ -673,6 +677,53 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       };
       updateMarkerOverlayRef.current = updateMarkerOverlay;
 
+      // ── AI Helper: recalculate path ──
+      const triggerPathfinding = async () => {
+        const s = pathStartRef.current;
+        const e2 = pathEndRef.current;
+        if (!s || !e2) return;
+        try {
+          const res = await fetch('/api/ai/pathfinding', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ start_lat: s[1], start_lng: s[0], end_lat: e2[1], end_lng: e2[0] })
+          });
+          if (res.ok) {
+            const geojson = await res.json();
+            const src = map.getSource('ai-path') as maplibregl.GeoJSONSource;
+            if (src) src.setData(geojson);
+          }
+        } catch (err) { console.error('Pathfinding error', err); }
+      };
+
+      // ── AI Helper: sync danger zones from drawn polygons ──
+      const syncDangerZones = async () => {
+        const allFeatures = draw.getAll();
+        const zones: {lat: number, lng: number, radius: number}[] = [];
+        allFeatures.features.forEach((f: any) => {
+          if (f.geometry.type === 'Polygon') {
+            const coords = f.geometry.coordinates[0];
+            let sLat = 0, sLng = 0;
+            coords.forEach((c2: any) => { sLng += c2[0]; sLat += c2[1]; });
+            const cLng = sLng / coords.length, cLat = sLat / coords.length;
+            let maxR = 0;
+            coords.forEach((c2: any) => {
+              const d = haversineDistance([cLng, cLat], c2);
+              if (d > maxR) maxR = d;
+            });
+            zones.push({ lat: cLat, lng: cLng, radius: Math.max(maxR, 20) });
+          }
+        });
+        try {
+          await fetch('/api/ai/danger-zones', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(zones)
+          });
+          triggerPathfinding();
+        } catch(err) { console.error(err); }
+      };
+
       map.on('draw.create', (e: any) => {
          e.features.forEach((feat: any) => {
            if (feat.geometry.type === 'Point') {
@@ -680,11 +731,13 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
            }
            syncGraphic(feat);
          });
-         // Force MapboxDraw to re-evaluate style expressions after property changes
          drawRef.current?.changeMode('simple_select');
          updateMarkerOverlay();
+         syncDangerZones();
       });
       
+      map.on('draw.update', () => { syncDangerZones(); });
+
       map.on('draw.delete', async (e: any) => {
          for (const feature of e.features) {
              if (typeof feature.id === 'number') {
@@ -692,6 +745,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
              }
          }
          updateMarkerOverlay();
+         syncDangerZones();
       });
 
       map.on('draw.selectionchange', (e: any) => {
@@ -724,27 +778,14 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
         if (!currentStart || (currentStart && currentEnd)) {
           setPathStart(coords);
           setPathEnd(null);
+          pathStartRef.current = coords;
+          pathEndRef.current = null;
           // Clear path
           (map.getSource('ai-path') as maplibregl.GeoJSONSource).setData({ type: 'FeatureCollection', features: [] });
         } else {
           setPathEnd(coords);
-          // Only fetch pathfinding if we are setting pathEnd
-          try {
-            const res = await fetch('/api/ai/pathfinding', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                start_lat: currentStart[1], start_lng: currentStart[0],
-                end_lat: coords[1], end_lng: coords[0]
-              })
-            });
-            if (res.ok) {
-              const geojson = await res.json();
-              (map.getSource('ai-path') as maplibregl.GeoJSONSource).setData(geojson);
-            }
-          } catch (err) {
-            console.error("Pathfinding error", err);
-          }
+          pathEndRef.current = coords;
+          triggerPathfinding();
         }
       });
     });
