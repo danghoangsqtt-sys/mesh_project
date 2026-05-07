@@ -8,6 +8,30 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import { useMeshStore } from '../stores/useMeshStore';
 
+// Haversine distance (meters) between two [lng, lat] points
+function haversineDistance(c1: [number, number], c2: [number, number]): number {
+  const R = 6371000;
+  const toRad = (d: number) => d * Math.PI / 180;
+  const dLat = toRad(c2[1] - c1[1]);
+  const dLon = toRad(c2[0] - c1[0]);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(c1[1])) * Math.cos(toRad(c2[1])) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Bearing (degrees) from c1 to c2
+function bearing(c1: [number, number], c2: [number, number]): number {
+  const toRad = (d: number) => d * Math.PI / 180;
+  const toDeg = (r: number) => r * 180 / Math.PI;
+  const dLon = toRad(c2[0] - c1[0]);
+  const y = Math.sin(dLon) * Math.cos(toRad(c2[1]));
+  const x = Math.cos(toRad(c1[1])) * Math.sin(toRad(c2[1])) - Math.sin(toRad(c1[1])) * Math.cos(toRad(c2[1])) * Math.cos(dLon);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+function formatDist(m: number): string {
+  return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`;
+}
+
 // Tactical multi-color layer transformer
 // Replaces the near-white Protomaps LIGHT palette with high-contrast tactical colors
 const getCustomLayers = () => {
@@ -185,11 +209,68 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
   const graphicTypeRef = useRef<string>('POI');
   const updateMarkerOverlayRef = useRef<() => void>(() => {});
 
+  // Measure distance state
+  const [measureMode, setMeasureMode] = useState(false);
+  const [measurePoints, setMeasurePoints] = useState<[number, number][]>([]);
+  const [measureResult, setMeasureResult] = useState<{dist: number; bear: number; from: [number,number]; to: [number,number]} | null>(null);
+  const [showNodeDistances, setShowNodeDistances] = useState(false);
+  const measureModeRef = useRef(false);
+
   // Sync state to refs
   useEffect(() => { pathStartRef.current = pathStart; }, [pathStart]);
   useEffect(() => { pathEndRef.current = pathEnd; }, [pathEnd]);
   useEffect(() => { selectedMarkerIconRef.current = selectedMarkerIcon; }, [selectedMarkerIcon]);
   useEffect(() => { graphicTypeRef.current = graphicType; }, [graphicType]);
+  useEffect(() => { measureModeRef.current = measureMode; }, [measureMode]);
+
+  // Update measure line on map when points change
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map || !isMapLoaded) return;
+    const src = map.getSource('measure-line') as maplibregl.GeoJSONSource;
+    if (!src) return;
+    if (measurePoints.length === 2) {
+      const [p1, p2] = measurePoints;
+      const dist = haversineDistance(p1, p2);
+      const bear = bearing(p1, p2);
+      const mid: [number, number] = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+      setMeasureResult({ dist, bear, from: p1, to: p2 });
+      src.setData({
+        type: 'FeatureCollection',
+        features: [
+          { type: 'Feature', geometry: { type: 'LineString', coordinates: [p1, p2] }, properties: {} },
+          { type: 'Feature', geometry: { type: 'Point', coordinates: mid }, properties: { label: `${formatDist(dist)} | ${bear.toFixed(0)}°` } },
+          { type: 'Feature', geometry: { type: 'Point', coordinates: p1 }, properties: { label: 'A' } },
+          { type: 'Feature', geometry: { type: 'Point', coordinates: p2 }, properties: { label: 'B' } },
+        ]
+      });
+    } else {
+      setMeasureResult(null);
+      src.setData({ type: 'FeatureCollection', features: [] });
+    }
+  }, [measurePoints, isMapLoaded]);
+
+  // Auto node-to-node distance lines
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map || !isMapLoaded) return;
+    const src = map.getSource('node-distances') as maplibregl.GeoJSONSource;
+    if (!src) return;
+    if (!showNodeDistances) { src.setData({ type: 'FeatureCollection', features: [] }); return; }
+    const nodeList = Object.values(nodes).filter(n => n.latitude && n.longitude);
+    const features: any[] = [];
+    for (let i = 0; i < nodeList.length; i++) {
+      for (let j = i + 1; j < nodeList.length; j++) {
+        const a: [number, number] = [nodeList[i].longitude, nodeList[i].latitude];
+        const b: [number, number] = [nodeList[j].longitude, nodeList[j].latitude];
+        const d = haversineDistance(a, b);
+        const mid: [number, number] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+        features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [a, b] }, properties: {} });
+        features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: mid }, properties: { label: formatDist(d) } });
+      }
+    }
+    src.setData({ type: 'FeatureCollection', features });
+  }, [nodes, showNodeDistances, isMapLoaded]);
 
   // Sync nodes to map
   useEffect(() => {
@@ -252,6 +333,14 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
             data: { type: 'FeatureCollection', features: [] }
           },
           'tactical-markers': {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] }
+          },
+          'measure-line': {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] }
+          },
+          'node-distances': {
             type: 'geojson',
             data: { type: 'FeatureCollection', features: [] }
           }
@@ -329,6 +418,38 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
             }
           },
           // Zone labels removed — zone feature disabled
+          // ── Measure line ──
+          {
+            id: 'measure-line-layer',
+            type: 'line',
+            source: 'measure-line',
+            filter: ['==', '$type', 'LineString'],
+            paint: { 'line-color': '#f59e0b', 'line-width': 3, 'line-dasharray': [4, 3] }
+          },
+          {
+            id: 'measure-label-layer',
+            type: 'symbol',
+            source: 'measure-line',
+            filter: ['==', '$type', 'Point'],
+            layout: { 'text-field': ['get', 'label'], 'text-size': 13, 'text-font': ['Noto Sans Bold'], 'text-allow-overlap': true },
+            paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 2 }
+          },
+          // ── Node distance lines (auto) ──
+          {
+            id: 'node-dist-line-layer',
+            type: 'line',
+            source: 'node-distances',
+            filter: ['==', '$type', 'LineString'],
+            paint: { 'line-color': '#06b6d4', 'line-width': 1.5, 'line-dasharray': [6, 4], 'line-opacity': 0.6 }
+          },
+          {
+            id: 'node-dist-label-layer',
+            type: 'symbol',
+            source: 'node-distances',
+            filter: ['==', '$type', 'Point'],
+            layout: { 'text-field': ['get', 'label'], 'text-size': 10, 'text-font': ['Noto Sans Regular'], 'text-allow-overlap': true },
+            paint: { 'text-color': '#67e8f9', 'text-halo-color': '#0f172a', 'text-halo-width': 1.5 }
+          }
         ]
       },
       center: center,
@@ -568,7 +689,16 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       // Initial sync after loading from backend
       setTimeout(updateMarkerOverlay, 2000);
 
-      map.on('click', async (e) => {
+      map.on('click', async (e: any) => {
+        // Measure mode: collect points
+        if (measureModeRef.current) {
+          const pt: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+          setMeasurePoints(prev => {
+            if (prev.length >= 2) return [pt]; // Reset after 2 points
+            return [...prev, pt];
+          });
+          return;
+        }
         const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
         
         // Use refs for current state
@@ -769,6 +899,37 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                     >
                        📌 {t('draw_point')}
                     </button>
+
+                    {/* Measure distance button */}
+                    <button 
+                       onClick={() => {
+                         const newMode = !measureMode;
+                         setMeasureMode(newMode);
+                         setMeasurePoints([]);
+                         setMeasureResult(null);
+                         if (newMode) setActiveMode('measure');
+                         else setActiveMode('simple_select');
+                       }}
+                       style={{ 
+                           background: measureMode ? '#b45309' : 'transparent', 
+                           color: measureMode ? '#fff' : '#a3a8b4', 
+                           border: '1px solid #b45309', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
+                       }}
+                    >
+                       📏 ĐO CỰ LY
+                    </button>
+
+                    {/* Auto node distances toggle */}
+                    <button 
+                       onClick={() => setShowNodeDistances(!showNodeDistances)}
+                       style={{ 
+                           background: showNodeDistances ? '#0e7490' : 'transparent', 
+                           color: showNodeDistances ? '#fff' : '#a3a8b4', 
+                           border: '1px solid #0e7490', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
+                       }}
+                    >
+                       🔗 {showNodeDistances ? 'ẨN' : 'HIỆN'} CỰ LY NODES
+                    </button>
                     <button 
                        onClick={async () => {
                          const draw = drawRef.current;
@@ -847,6 +1008,31 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                {t('copy_coord')}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Measure result popup */}
+      {measureResult && (
+        <div style={{ position: 'absolute', top: 10, right: 50, zIndex: 10, backgroundColor: 'rgba(15,23,42,0.95)', padding: '12px', borderRadius: '6px', color: '#f8fafc', border: '1px solid #b45309', minWidth: '200px', maxWidth: 'min(280px, 70vw)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '0.75rem', color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '1px' }}>
+             📏 KẾT QUẢ ĐO
+          </h4>
+          <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '6px' }}>
+            {formatDist(measureResult.dist)}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>
+            Góc phương vị: <span style={{ color: '#67e8f9', fontWeight: 'bold' }}>{measureResult.bear.toFixed(1)}°</span>
+          </div>
+          <div style={{ fontSize: '0.65rem', color: '#64748b', lineHeight: '1.4' }}>
+            A: {measureResult.from[1].toFixed(5)}, {measureResult.from[0].toFixed(5)}<br/>
+            B: {measureResult.to[1].toFixed(5)}, {measureResult.to[0].toFixed(5)}
+          </div>
+          <button 
+            onClick={() => { setMeasurePoints([]); setMeasureResult(null); }}
+            style={{ marginTop: '8px', background: '#4b5563', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem', width: '100%' }}
+          >
+            ĐO LẠI
+          </button>
         </div>
       )}
     </div>
