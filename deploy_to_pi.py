@@ -61,7 +61,7 @@ def deploy():
     
     sftp.close()
     
-    local_frontend = "extracted_mesh/frontend/dist"
+    local_frontend = "frontend/dist"
     remote_frontend = f"/home/{username}/frontend_dist"
     
     print(f"Syncing {local_frontend} to {remote_frontend}...")

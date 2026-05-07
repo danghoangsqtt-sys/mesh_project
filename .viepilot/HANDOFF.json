@@ -1,43 +1,34 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-07T21:13:00+07:00",
-  "phase": "milestone-1-complete",
-  "phase_name": "Milestone 1 — v1.0.0 Complete",
-  "task": "none",
-  "total_tasks": "0",
-  "status": "completed",
+  "timestamp": "2026-05-08T06:54:30+07:00",
+  "phase": "8",
+  "phase_name": "PMTiles Downloader & Tactical UI Redesign",
+  "task": "Mobile UI Compression & AI Removal",
+  "total_tasks": "4",
+  "status": "paused",
   "completed_tasks": [
-    "zone-colors-fix: Phân tích bug MapboxDraw user_type property không render",
-    "zone-colors-fix: Thêm graphicTypeRef để track loại vùng trong callbacks",
-    "zone-colors-fix: Fix draw.create — set type ngay khi vẽ xong polygon",
-    "zone-colors-fix: Fix onChange dropdown — force re-render via changeMode toggle",
-    "zone-colors-fix: Thêm zone-type pre-selector UI trong toolbar (AN TOÀN/CHUNG/NGUY HIỂM)",
-    "zone-colors-fix: Build frontend (npm run build) → dist/",
-    "zone-colors-fix: Deploy lên Pi 10.42.0.1 via deploy_to_pi.py (user=pi)",
-    "zone-colors-fix: Xác nhận mesh-server.service active (running)"
+    "Remove AI logic from TacticalPanel message sending",
+    "Shrink padding and gaps in TacticalPanel",
+    "Shrink padding and font sizes in TacticalMap tools overlay",
+    "Shrink padding and font sizes in App.tsx sidebar and headers"
   ],
-  "remaining_tasks": [],
+  "remaining_tasks": [
+    "Verify mobile UI on more devices",
+    "Any further UI tweaks requested by user"
+  ],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [
-    "Dùng requestAnimationFrame để defer changeMode sau setFeatureProperty — đảm bảo MapboxDraw store được update trước khi re-render.",
-    "Dùng updateMarkerOverlayRef để expose closure function ra ngoài useEffect scope.",
-    "Deploy qua deploy_to_pi.py dùng user=pi (mesh auth fail), Pi tại 10.42.0.1.",
-    "File đúng để sửa: extracted_mesh/frontend (không phải frontend/) — đây là bản đang chạy trên Pi."
+    "Removed AI Copilot from the 'Chỉ huy' tab to make it purely for manual tactical messaging.",
+    "Used extremely tight padding (4px/6px) and small fonts (0.65rem - 0.75rem) to ensure the UI fits comfortably on small mobile screens without scrolling."
   ],
   "uncommitted_files": [
-    "extracted_mesh/frontend/src/components/TacticalMap.tsx",
+    "frontend/src/App.tsx",
     "frontend/src/components/TacticalMap.tsx",
-    "frontend/src/App.css",
-    "backend/app/services/geofencing.py",
-    "backend/app/routers/ai.py",
-    "backend/app/ws/websocket_handler.py",
-    "extracted_mesh/frontend/package.json",
-    "extracted_mesh/frontend/src/App.tsx",
-    "extracted_mesh/frontend/src/components/TacticalPanel.tsx",
-    "extracted_mesh/frontend/src/i18n.ts",
-    "extracted_mesh/frontend/src/stores/useMeshStore.ts"
+    "frontend/src/components/TacticalPanel.tsx",
+    "deploy_to_pi.py",
+    "and other backend/frontend files from previous hotfixes"
   ],
-  "next_action": "Bắt đầu Milestone 2: /vp-evolve để lên kế hoạch Phase 10+ (Node Markers on Map, Tactical Messaging, Dynamic Zone Mgmt).",
-  "context_notes": "Milestone 1 (v1.0.0) COMPLETED. Phase 1-9 done. Hotfix zone-visualization deployed và verified thành công. Frontend codebase đã được merge từ extracted_mesh/frontend vào frontend/. Node markers đã được thêm vào TacticalMap. Dự án sẵn sàng cho Milestone 2."
+  "next_action": "Wait for user feedback on the UI compression. If approved, continue to the next requested feature.",
+  "context_notes": "We just finished aggressively compressing the UI components (Tactical Tools on Map, Gateway Panel, Tabs, and Nodes Table) to make them look good and fit well on a mobile device screen. Deployed successfully to Pi 5."
 }

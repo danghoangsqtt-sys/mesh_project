@@ -24,7 +24,9 @@ export const useWebSocket = (url: string = 'ws://localhost:8000/ws') => {
           const data = JSON.parse(event.data);
           
           if (data.type === 'node_update') {
-            updateNode(data.data as SoldierNode);
+            if (!useMeshStore.getState().isDemoMode) {
+              updateNode(data.data as SoldierNode);
+            }
           } else if (data.type === 'EVENT' || data.type === 'event' || data.type === 'SOS' || data.type === 'GEOFENCE_BREACH') {
             // Transform to event interface
             addEvent({

@@ -62,6 +62,8 @@ const resources = {
       "instr_check_medic": "Deploy medic to last known location immediately.",
       "instr_check_conn": "Check gateway and USB connection.",
       "instr_replace_bat": "Replace battery on device.",
+      "ai_predict_heat_stress": "AI Warning: Heat Stress Risk",
+      "ai_predict_hypoxia": "AI Warning: Oxygen Depletion Trend",
       "manage_map": "Manage Map",
       "map_manager_desc": "Download an offline map region. Zoom and pan the map below to select the region you want to save to the Pi.",
       "download_map": "Download Map",
@@ -84,7 +86,21 @@ const resources = {
       "selected_point": "SELECTED: POINT",
       "selected_zone": "SELECTED: ZONE",
       "copy_coord": "Copy",
-      "broadcast_coord": "Broadcast to Mesh"
+      "broadcast_coord": "Broadcast to Mesh",
+      "settings_language": "LANGUAGE / NGÔN NGỮ",
+      "settings_system_caps": "SYSTEM CAPABILITIES",
+      "settings_sim_mode": "Simulation Training Mode",
+      "settings_sim_mode_desc": "Deploy simulated nodes for tactical maneuver training",
+      "settings_map_manager": "Offline Map Manager",
+      "settings_map_manager_desc": "Download vector maps for offline usage",
+      "settings_ai_diag": "Run System Diagnostic (AI)",
+      "settings_ai_diag_desc": "Force an immediate AI health analysis across all nodes",
+      "open": "OPEN",
+      "execute": "EXECUTE",
+      "on": "ON",
+      "off": "OFF",
+      "show_trails": "SHOW TRAILS",
+      "hide_trails": "HIDE TRAILS"
     }
   },
   vi: {
@@ -147,6 +163,8 @@ const resources = {
       "instr_check_medic": "Điều động quân y đến tọa độ cuối cùng ngay lập tức.",
       "instr_check_conn": "Kiểm tra gateway và cáp USB.",
       "instr_replace_bat": "Thay pin cho thiết bị.",
+      "ai_predict_heat_stress": "Cảnh báo AI: Dấu hiệu sốc nhiệt",
+      "ai_predict_hypoxia": "Cảnh báo AI: Thiếu hụt Oxy liên tục",
       "manage_map": "Quản lý Bản đồ",
       "map_manager_desc": "Tải bản đồ ngoại tuyến. Kéo và thu phóng bản đồ bên dưới để khoanh vùng khu vực bạn muốn lưu vào Pi.",
       "download_map": "Tải Bản Đồ",
@@ -169,7 +187,21 @@ const resources = {
       "selected_point": "ĐÃ CHỌN: ĐIỂM",
       "selected_zone": "ĐÃ CHỌN: VÙNG",
       "copy_coord": "Sao chép",
-      "broadcast_coord": "Gửi Tọa độ xuống Mesh"
+      "broadcast_coord": "Gửi Tọa độ xuống Mesh",
+      "settings_language": "NGÔN NGỮ / LANGUAGE",
+      "settings_system_caps": "TÍNH NĂNG HỆ THỐNG",
+      "settings_sim_mode": "Chế độ mô phỏng",
+      "settings_sim_mode_desc": "Triển khai thiết bị ảo để huấn luyện chiến thuật",
+      "settings_map_manager": "Quản lý Bản đồ Ngoại tuyến",
+      "settings_map_manager_desc": "Tải bản đồ vector để sử dụng khi không có mạng",
+      "settings_ai_diag": "Kiểm tra Chẩn đoán Hệ thống (AI)",
+      "settings_ai_diag_desc": "Ép AI quét và phân tích sức khỏe toàn đội ngay lập tức",
+      "open": "MỞ",
+      "execute": "THỰC THI",
+      "on": "BẬT",
+      "off": "TẮT",
+      "show_trails": "HIỂN THỊ LỘ TRÌNH",
+      "hide_trails": "ẨN LỘ TRÌNH"
     }
   }
 };

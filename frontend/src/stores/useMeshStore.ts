@@ -63,6 +63,9 @@ export interface RawLog {
 
 interface MeshStore {
   nodes: Record<number, SoldierNode>;
+  nodeTrails: Record<number, [number, number][]>; // [longitude, latitude]
+  showNodeTrails: boolean;
+  setShowNodeTrails: (val: boolean) => void;
   events: MeshEvent[];
   connectionStatus: 'connecting' | 'connected' | 'disconnected';
   mapDownloadProgress: number;
@@ -83,24 +86,52 @@ interface MeshStore {
   updateQuickMessage: (index: number, msg: string) => void;
 }
 
+// Hàm hỗ trợ: Tính khoảng cách gần đúng (bỏ qua nếu di chuyển < 2m)
+const hasMoved = (p1: [number, number], p2: [number, number]) => {
+  return Math.abs(p1[0] - p2[0]) > 0.00002 || Math.abs(p1[1] - p2[1]) > 0.00002;
+};
+
 export const useMeshStore = create<MeshStore>((set) => ({
   nodes: {},
+  nodeTrails: {},
+  showNodeTrails: true, // Default to true
+  setShowNodeTrails: (val) => set({ showNodeTrails: val }),
   events: [],
   connectionStatus: 'disconnected',
   mapDownloadProgress: 0,
   mapDownloadStatus: '',
   mapVersion: 0,
   updateNode: (node) => 
-    set((state) => ({
-      nodes: { ...state.nodes, [node.node_id]: node }
-    })),
+    set((state) => {
+      const newCoord: [number, number] = [node.longitude, node.latitude];
+      let currentTrail = state.nodeTrails[node.node_id] || [];
+      
+      // Chỉ push vào trail nếu chưa có, hoặc tọa độ thay đổi đáng kể (tránh nhiễu GPS khi đứng yên)
+      if (currentTrail.length === 0 || hasMoved(currentTrail[currentTrail.length - 1], newCoord)) {
+        currentTrail = [...currentTrail, newCoord].slice(-200); // Giới hạn 200 điểm gần nhất
+      }
+
+      return {
+        nodes: { ...state.nodes, [node.node_id]: node },
+        nodeTrails: { ...state.nodeTrails, [node.node_id]: currentTrail }
+      };
+    }),
   setNodes: (newNodes) => 
-    set(() => {
+    set((state) => {
       const nodesMap: Record<number, SoldierNode> = {};
+      const newTrails = { ...state.nodeTrails };
+      
       newNodes.forEach((n) => {
         nodesMap[n.node_id] = n;
+        const newCoord: [number, number] = [n.longitude, n.latitude];
+        let currentTrail = newTrails[n.node_id] || [];
+        
+        if (currentTrail.length === 0 || hasMoved(currentTrail[currentTrail.length - 1], newCoord)) {
+          currentTrail = [...currentTrail, newCoord].slice(-200);
+        }
+        newTrails[n.node_id] = currentTrail;
       });
-      return { nodes: nodesMap };
+      return { nodes: nodesMap, nodeTrails: newTrails };
     }),
   addEvent: (event) =>
     set((state) => ({
@@ -114,7 +145,7 @@ export const useMeshStore = create<MeshStore>((set) => ({
     set((state) => ({
       rawLogs: [...state.rawLogs, log].slice(-200) // Keep last 200 logs, newer at end
     })),
-  clearNodes: () => set({ nodes: {} }),
+  clearNodes: () => set({ nodes: {}, nodeTrails: {} }),
   isDemoMode: false,
   setDemoMode: (val) => set({ isDemoMode: val }),
   quickMessages: getInitialQuickMessages(),

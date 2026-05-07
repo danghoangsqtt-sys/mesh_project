@@ -65,22 +65,31 @@ class SerialBridge:
 
     def _connect(self) -> bool:
         """Attempt to open the serial port. Returns True on success."""
-        try:
-            self._serial = serial.Serial(
-                port=settings.SERIAL_PORT,
-                baudrate=settings.SERIAL_BAUDRATE,
-                timeout=settings.SERIAL_TIMEOUT,
-                bytesize=serial.EIGHTBITS,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-            )
-            self.is_connected = True
-            logger.info("Serial port opened: %s", settings.SERIAL_PORT)
-            return True
-        except serial.SerialException as e:
-            self.is_connected = False
-            logger.warning("Failed to open serial port %s: %s", settings.SERIAL_PORT, e)
-            return False
+        """Synchronously attempt to connect to the serial port."""
+        import glob
+        
+        # Determine port to use: either exact configured or try fallback
+        ports_to_try = [settings.SERIAL_PORT]
+        
+        if "ttyUSB" in settings.SERIAL_PORT or "ttyACM" in settings.SERIAL_PORT:
+            # Add common fallbacks just in case
+            if "/dev/ttyUSB0" not in ports_to_try:
+                ports_to_try.append("/dev/ttyUSB0")
+            if "/dev/ttyACM0" not in ports_to_try:
+                ports_to_try.append("/dev/ttyACM0")
+                
+        for port in ports_to_try:
+            try:
+                logger.info("Attempting to connect to Gateway on %s...", port)
+                self._serial = serial.Serial(port, settings.SERIAL_BAUDRATE, timeout=settings.SERIAL_TIMEOUT)
+                self.is_connected = True
+                logger.info("Connected to LoRa Gateway on %s at %d baud.", port, settings.SERIAL_BAUDRATE)
+                return True
+            except serial.SerialException as e:
+                logger.debug("Failed to connect on %s: %s", port, e)
+                
+        logger.warning("Could not connect to any LoRa Gateway serial ports.")
+        return False
 
     def _reader_loop(self):
         """Background thread: continuously read serial data and parse packets."""

@@ -40,40 +40,40 @@ const EventLog: React.FC<EventLogProps> = ({ flexMode = false }) => {
             {t('no_recent_events')}
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-            <tbody>
-              {events.map((event) => (
-                <tr key={event.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <td style={{ padding: '8px 4px', width: '100px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {events.map((event) => (
+              <div key={event.id} style={{ display: 'flex', flexDirection: 'column', padding: '8px 4px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', fontFamily: 'monospace' }}>
                     {format(new Date(event.created_at), 'HH:mm:ss')}
-                  </td>
-                  <td style={{ padding: '8px 4px', width: '80px' }}>
-                    <span style={{ 
-                      padding: '2px 6px', 
-                      borderRadius: '4px', 
-                      fontSize: '0.75rem', 
-                      backgroundColor: getEventColor(event.severity),
-                      color: event.severity === 'WARNING' ? '#000' : '#fff',
-                      fontWeight: 'bold'
-                    }}>
-                      {event.severity}
-                    </span>
-                  </td>
-                  <td style={{ padding: '8px 4px', width: '80px', color: 'var(--color-secondary)' }}>
+                  </span>
+                  <span style={{ 
+                    padding: '1px 4px', 
+                    borderRadius: '3px', 
+                    fontSize: '0.65rem', 
+                    backgroundColor: getEventColor(event.severity),
+                    color: event.severity === 'WARNING' ? '#000' : '#fff',
+                    fontWeight: 'bold'
+                  }}>
+                    {event.severity}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary)', fontWeight: 'bold' }}>
                     {event.node_id ? `Node ${event.node_id}` : 'System'}
-                  </td>
-                  <td style={{ padding: '8px 4px' }}>
-                    <div style={{ fontWeight: 'bold' }}>{t(event.event_type) || event.event_type}</div>
-                    {event.message && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                        {t('instruction')}: {t(event.message) || event.message}
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </span>
+                </div>
+                <div style={{ paddingLeft: '2px' }}>
+                  <div style={{ fontWeight: 'bold', fontSize: '0.8rem', color: '#e2e8f0', lineHeight: 1.2 }}>
+                    {t(event.event_type) || event.event_type}
+                  </div>
+                  {event.message && (
+                    <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginTop: '3px', lineHeight: 1.2 }}>
+                      {t('instruction')}: {t(event.message) || event.message}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

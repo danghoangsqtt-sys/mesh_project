@@ -5,6 +5,7 @@ import TacticalPanel from './components/TacticalPanel';
 import { useWebSocket } from './hooks/useWebSocket';
 import MapManagerModal from './components/MapManagerModal';
 import SettingsModal from './components/SettingsModal';
+import AIHealthWidget from './components/AIHealthWidget';
 import { useMeshStore } from './stores/useMeshStore';
 
 function App() {
@@ -45,7 +46,9 @@ function App() {
         const nodesRes = await fetch('/api/nodes');
         if (nodesRes.ok) {
           const nodesData = await nodesRes.json();
-          setNodes(nodesData);
+          if (!useMeshStore.getState().isDemoMode) {
+            setNodes(nodesData);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch nodes", err);
@@ -111,9 +114,11 @@ function App() {
   return (
     <div className="app-container" style={{ position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', background: '#1a1f16', overflow: 'hidden' }}>
       
-      {/* Left Side: Map */}
+      {/* Left Side: Map & Widgets */}
       <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
         <TacticalMap />
+        
+        <AIHealthWidget />
 
         {/* Sidebar toggle button — always visible, floats on map edge */}
         <button
@@ -169,29 +174,29 @@ function App() {
       }}>
         
         {/* Sidebar Header */}
-        <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2d3328', borderBottom: '1px solid #1a1f16' }}>
+        <div style={{ padding: '6px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2d3328', borderBottom: '1px solid #1a1f16' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '1rem' }}>⚔</span>
-            <span style={{ fontWeight: 'bold', letterSpacing: '1px', fontSize: '0.9rem', textTransform: 'uppercase' }}>{t('dashboard_title')}</span>
+            <span style={{ fontSize: '0.85rem' }}>⚔</span>
+            <span style={{ fontWeight: 'bold', letterSpacing: '1px', fontSize: '0.75rem', textTransform: 'uppercase' }}>{t('dashboard_title')}</span>
           </div>
-          <button onClick={() => setIsSettingsOpen(true)} style={{ background: 'none', border: 'none', color: '#a3b19b', cursor: 'pointer', fontSize: '1.2rem' }}>
+          <button onClick={() => setIsSettingsOpen(true)} style={{ background: 'none', border: 'none', color: '#a3b19b', cursor: 'pointer', fontSize: '1rem' }}>
             ⚙️
           </button>
         </div>
 
         {/* Gateway Connection Box */}
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #2d3328', backgroundColor: 'rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase' }}>
+        <div style={{ padding: '8px 12px', borderBottom: '1px solid #2d3328', backgroundColor: 'rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase' }}>
               ⚡ {t('gateway_conn')}
             </span>
           </div>
           
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
             <input 
               list="port-options"
               value={selectedPort} onChange={(e) => setSelectedPort(e.target.value)}
-              style={{ flex: 1, background: '#2d3328', border: '1px solid #4b5563', borderRadius: '4px', padding: '6px 8px', color: '#fff', fontSize: '0.85rem' }}
+              style={{ flex: 1, background: '#2d3328', border: '1px solid #4b5563', borderRadius: '4px', padding: '4px 6px', color: '#fff', fontSize: '0.75rem' }}
               placeholder="AUTO, /dev/ttyUSB0"
             />
             <datalist id="port-options">
@@ -200,33 +205,33 @@ function App() {
               <option value="/dev/ttyACM0" />
               <option value="socket://192.168.4.1:8080" />
             </datalist>
-            <span style={{ fontSize: '0.8rem', color: '#9ca3af', alignSelf: 'center' }}>Baud:</span>
+            <span style={{ fontSize: '0.7rem', color: '#9ca3af', alignSelf: 'center' }}>Baud:</span>
             <select 
               value={selectedBaud} onChange={(e) => setSelectedBaud(e.target.value)}
-              style={{ background: '#2d3328', border: '1px solid #4b5563', borderRadius: '4px', padding: '6px 8px', color: '#fff', fontSize: '0.85rem', width: '80px' }}
+              style={{ background: '#2d3328', border: '1px solid #4b5563', borderRadius: '4px', padding: '4px 6px', color: '#fff', fontSize: '0.75rem', width: '70px' }}
             >
               <option value="9600">9600</option>
               <option value="115200">115200</option>
             </select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button 
               onClick={handleConnectGateway}
               disabled={isConnecting}
               style={{
                 background: gatewayStatus.connected ? '#ef4444' : '#10b981',
-                color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: isConnecting ? 'wait' : 'pointer', fontWeight: 'bold', flex: 1, textTransform: 'uppercase'
+                color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: isConnecting ? 'wait' : 'pointer', fontWeight: 'bold', flex: 1, textTransform: 'uppercase', fontSize: '0.75rem'
               }}
             >
               {isConnecting ? '...' : gatewayStatus.connected ? 'Disconnect' : 'Connect'}
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1.5 }}>
-               <div className={gatewayStatus.connected ? 'critical-pulse' : ''} style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: gatewayStatus.connected ? '#10b981' : '#6b7280' }} />
-               <span style={{ fontSize: '0.85rem', color: gatewayStatus.connected ? '#10b981' : '#6b7280', fontWeight: 'bold', letterSpacing: '1px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1.5 }}>
+               <div className={gatewayStatus.connected ? 'critical-pulse' : ''} style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: gatewayStatus.connected ? '#10b981' : '#6b7280' }} />
+               <span style={{ fontSize: '0.75rem', color: gatewayStatus.connected ? '#10b981' : '#6b7280', fontWeight: 'bold', letterSpacing: '1px' }}>
                  {gatewayStatus.connected ? 'ONLINE' : 'OFFLINE'}
                </span>
-               {gatewayStatus.connected && <span style={{ fontSize: '0.7rem', color: '#9ca3af', marginLeft: 'auto', textTransform: 'uppercase' }}>{selectedPort}</span>}
+               {gatewayStatus.connected && <span style={{ fontSize: '0.65rem', color: '#9ca3af', marginLeft: 'auto', textTransform: 'uppercase' }}>{selectedPort}</span>}
             </div>
           </div>
         </div>
@@ -235,19 +240,19 @@ function App() {
         <div style={{ display: 'flex', backgroundColor: '#1a1f16', borderBottom: '1px solid #2d3328' }}>
           <button 
             onClick={() => setActiveTab('nodes')}
-            style={{ flex: 1, padding: '12px 0', background: activeTab === 'nodes' ? '#3b4335' : 'transparent', color: activeTab === 'nodes' ? '#10b981' : '#9ca3af', border: 'none', borderBottom: activeTab === 'nodes' ? '2px solid #10b981' : '2px solid transparent', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase' }}
+            style={{ flex: 1, padding: '8px 0', background: activeTab === 'nodes' ? '#3b4335' : 'transparent', color: activeTab === 'nodes' ? '#10b981' : '#9ca3af', border: 'none', borderBottom: activeTab === 'nodes' ? '2px solid #10b981' : '2px solid transparent', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem', textTransform: 'uppercase' }}
           >
             👥 {t('units')}
           </button>
           <button 
             onClick={() => setActiveTab('chat')}
-            style={{ flex: 1, padding: '12px 0', background: activeTab === 'chat' ? '#3b4335' : 'transparent', color: activeTab === 'chat' ? '#3b82f6' : '#9ca3af', border: 'none', borderBottom: activeTab === 'chat' ? '2px solid #3b82f6' : '2px solid transparent', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase' }}
+            style={{ flex: 1, padding: '8px 0', background: activeTab === 'chat' ? '#3b4335' : 'transparent', color: activeTab === 'chat' ? '#3b82f6' : '#9ca3af', border: 'none', borderBottom: activeTab === 'chat' ? '2px solid #3b82f6' : '2px solid transparent', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem', textTransform: 'uppercase' }}
           >
             💬 {t('command')}
           </button>
           <button 
             onClick={() => setActiveTab('logs')}
-            style={{ flex: 1, padding: '12px 0', background: activeTab === 'logs' ? '#3b4335' : 'transparent', color: activeTab === 'logs' ? '#facc15' : '#9ca3af', border: 'none', borderBottom: activeTab === 'logs' ? '2px solid #facc15' : '2px solid transparent', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase' }}
+            style={{ flex: 1, padding: '8px 0', background: activeTab === 'logs' ? '#3b4335' : 'transparent', color: activeTab === 'logs' ? '#facc15' : '#9ca3af', border: 'none', borderBottom: activeTab === 'logs' ? '2px solid #facc15' : '2px solid transparent', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem', textTransform: 'uppercase' }}
           >
             📋 {t('logs')}
           </button>

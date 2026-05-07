@@ -52,8 +52,15 @@ async def send_command(
     await db.flush()
 
     # Write to serial bridge
-    success = await serial_bridge.write(packet_bytes)
+    # Chống nhiễu Half-Duplex: Gửi 3 lần cho TẤT CẢ các gói tin để lọt qua khe thời gian TX của các node
+    success = False
+    import asyncio
     
+    for _ in range(3):
+        success = await serial_bridge.write(packet_bytes)
+        if not success: break
+        await asyncio.sleep(0.8)
+        
     if success:
         entity.status = "SENT"
         import datetime

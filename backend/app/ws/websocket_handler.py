@@ -20,6 +20,7 @@ router = APIRouter()
 
 from app.services.geofencing import geofencing_service
 from app.services.vitals import vitals_service
+from app.services.ai_health_analyzer import ai_health_analyzer
 from app.database import async_session
 
 async def _packet_broadcaster():
@@ -36,8 +37,13 @@ async def _packet_broadcaster():
                 packet.node_id, packet.heart_rate, packet.spo2,
                 packet.battery_voltage, packet.latitude, packet.longitude
             )
+            
+            # AI Health Prediction (Phase 1)
+            ai_events = await ai_health_analyzer.analyze_node(
+                packet.node_id, packet.heart_rate, packet.spo2, packet.temperature
+            )
 
-            all_events = vital_events + geofence_events
+            all_events = vital_events + geofence_events + ai_events
             
             # Broadcast the packet
             await manager.broadcast_packet(packet)

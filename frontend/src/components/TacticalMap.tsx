@@ -32,11 +32,117 @@ function formatDist(m: number): string {
   return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`;
 }
 
-// Tactical multi-color layer transformer
-// Replaces the near-white Protomaps LIGHT palette with high-contrast tactical colors
-const getCustomLayers = () => {
-  const baseLayers = layers('offline-map', LIGHT, { lang: 'vi' });
+// ═══════════════════════════════════════════════════════════════════════
+// SCHEMA COMPATIBILITY FIX — PMTiles v3 (pmap:kind) vs Basemaps v5 (kind)
+// The offline.pmtiles uses older Protomaps schema where classification
+// fields are prefixed with "pmap:" (e.g. pmap:kind, pmap:kind_detail).
+// However @protomaps/basemaps v5.x generates filters using unprefixed
+// "kind" fields. This transformer patches all expressions to match.
+// ═══════════════════════════════════════════════════════════════════════
+const FIELD_REMAP: Record<string, string> = {
+  'kind': 'pmap:kind',
+  'kind_detail': 'pmap:kind_detail',
+  'min_zoom': 'pmap:min_zoom',
+  'brk_a3': 'pmap:brk_a3',
+  'min_admin_level': 'pmap:min_admin_level',
+  'level': 'pmap:level',
+  'link': 'pmap:link',
+  'is_link': 'pmap:link',
+};
+
+/** Recursively remap field names in MapLibre GL filter/paint expressions */
+const remapExpression = (expr: any): any => {
+  if (!Array.isArray(expr)) return expr;
   
+  const op = expr[0];
+  
+  // Property access: ["get", "kind"] → ["get", "pmap:kind"]
+  if (op === 'get' && typeof expr[1] === 'string' && FIELD_REMAP[expr[1]]) {
+    return ['get', FIELD_REMAP[expr[1]], ...expr.slice(2).map(remapExpression)];
+  }
+  
+  // "has" / "!has" operator: ["has", "kind"] → ["has", "pmap:kind"]
+  if ((op === 'has' || op === '!has') && typeof expr[1] === 'string' && FIELD_REMAP[expr[1]]) {
+    return [op, FIELD_REMAP[expr[1]]];
+  }
+  
+  // Comparison with shorthand: ["==", "kind", "highway"] → ["==", "pmap:kind", "highway"]
+  if (['==', '!=', '>', '<', '>=', '<=', 'in', '!in'].includes(op)) {
+    if (typeof expr[1] === 'string' && FIELD_REMAP[expr[1]]) {
+      return [op, FIELD_REMAP[expr[1]], ...expr.slice(2).map(remapExpression)];
+    }
+  }
+  
+  // "match" expression: ["match", ["get","kind"], ...] → remap the inner get
+  // "case", "interpolate", "step", "coalesce", "all", "any", "none" — recurse
+  return expr.map(remapExpression);
+};
+
+/** Remap all field refs in a layer's filter and paint/layout expressions */
+const remapLayer = (layer: any): any => {
+  const patched = { ...layer };
+  
+  // Remap filter
+  if (patched.filter) {
+    patched.filter = remapExpression(patched.filter);
+  }
+  
+  // Remap paint expressions
+  if (patched.paint) {
+    const newPaint: any = {};
+    for (const [key, val] of Object.entries(patched.paint)) {
+      newPaint[key] = remapExpression(val);
+    }
+    patched.paint = newPaint;
+  }
+  
+  // Remap layout expressions
+  if (patched.layout) {
+    const newLayout: any = {};
+    for (const [key, val] of Object.entries(patched.layout)) {
+      newLayout[key] = remapExpression(val);
+    }
+    patched.layout = newLayout;
+  }
+  
+  return patched;
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// TACTICAL MAP STYLE ENGINE — High-contrast multi-color vector layers
+// Transforms the near-white Protomaps LIGHT palette into a vivid, 
+// field-ready tactical display with clear roads, vegetation & terrain.
+// Inspired by OSM Liberty + AliFlux/VectorTileRenderer color palettes.
+// ═══════════════════════════════════════════════════════════════════════
+const getCustomLayers = () => {
+  // Generate base layers, then remap field names for PMTiles compatibility
+  const rawLayers = layers('offline-map', LIGHT, { lang: 'vi' });
+  const baseLayers = rawLayers.map(remapLayer);
+  
+  // Tactical road width multiplier: boost widths for field visibility
+  // Returns undefined if original is undefined (casing-only layers without line-width)
+  const boostWidth = (original: any, factor: number, minWidth: number = 0.5): any => {
+    if (original === undefined || original === null) return undefined; // Don't create width where none existed
+    if (typeof original === 'number') return Math.max(original * factor, minWidth);
+    if (Array.isArray(original) && original[0] === 'interpolate') {
+      // Deep clone to avoid mutating shared protomaps references
+      const boosted = JSON.parse(JSON.stringify(original));
+      for (let i = 4; i < boosted.length; i += 2) { // numeric values are at even indices after header
+        if (typeof boosted[i] === 'number') {
+          boosted[i] = Math.max(boosted[i] * factor, minWidth);
+        }
+      }
+      return boosted;
+    }
+    return original;
+  };
+  
+  // Safely set boosted width — only assigns if the boosted value is defined
+  const setBoostWidth = (paint: any, original: any, factor: number, minWidth: number = 0.5) => {
+    const boosted = boostWidth(original, factor, minWidth);
+    if (boosted !== undefined) paint['line-width'] = boosted;
+  };
+
   const modifiedLayers = baseLayers.map((layer: any) => {
     const id = layer.id || '';
     const type = layer.type || '';
@@ -54,98 +160,262 @@ const getCustomLayers = () => {
       }
     }
 
-    // ── WATER (fill + line) ──
+    // ══════════════════════════════════════════
+    // BACKGROUND — dark tactical base
+    // ══════════════════════════════════════════
+    if (id === 'background') {
+      paintCopy['background-color'] = '#f0ece4'; // warm parchment background
+      return { ...layer, paint: paintCopy, layout: layoutCopy };
+    }
+
+    // ══════════════════════════════════════════
+    // WATER (fill + line) — vivid blue
+    // ══════════════════════════════════════════
     if (sl === 'water' || id.includes('water')) {
       if (type === 'fill') {
-        paintCopy['fill-color'] = '#0ea5e9';
-        paintCopy['fill-opacity'] = 0.6;
+        paintCopy['fill-color'] = '#4da6e8';
+        paintCopy['fill-opacity'] = 0.85;
       } else if (type === 'line') {
-        paintCopy['line-color'] = '#0284c7';
+        paintCopy['line-color'] = '#2980b9';
+        if (id.includes('stream')) {
+          paintCopy['line-color'] = '#5dade2';
+          paintCopy['line-width'] = ['interpolate', ['linear'], ['zoom'], 9, 0.5, 14, 1.5, 18, 3];
+        } else if (id.includes('river')) {
+          paintCopy['line-color'] = '#2e86c1';
+          paintCopy['line-width'] = ['interpolate', ['linear'], ['zoom'], 9, 1, 14, 2.5, 18, 5];
+        }
+      } else if (type === 'symbol') {
+        paintCopy['text-color'] = '#1a5276';
+        paintCopy['text-halo-color'] = '#aed6f1';
+        paintCopy['text-halo-width'] = 1.5;
       }
       return { ...layer, paint: paintCopy, layout: layoutCopy };
     }
 
-    // ── NATURAL / PARKS / LANDCOVER (green zones) ──
-    if (sl === 'natural' || sl === 'landcover' || sl === 'landuse' ||
-        id.includes('natural') || id.includes('park') || id.includes('landuse') || id.includes('landcover')) {
+    // ══════════════════════════════════════════
+    // LANDCOVER — vegetation must be visible at ALL zoom levels
+    // The default protomaps LIGHT fades landcover to 0 at zoom 7+
+    // ══════════════════════════════════════════
+    if (id === 'landcover') {
+      paintCopy['fill-color'] = [
+        'match', ['get', 'pmap:kind'],
+        'grassland', '#b8e6b0',      // light green grassland
+        'barren', '#e8dcc8',          // sandy barren
+        'urban_area', '#ddd8d0',      // urban gray
+        'farmland', '#c5e6b8',        // farm green
+        'glacier', '#e8f0f8',         // icy white-blue
+        'scrub', '#c8d8a0',           // scrub yellow-green
+        '#a8d8b0'                     // default forest green
+      ];
+      // KEY FIX: keep landcover visible at ALL zoom levels (was fading to 0 at z7+)
+      paintCopy['fill-opacity'] = ['interpolate', ['linear'], ['zoom'], 0, 0.8, 7, 0.5, 12, 0.4, 18, 0.35];
+      return { ...layer, paint: paintCopy, layout: layoutCopy };
+    }
+
+    // ══════════════════════════════════════════
+    // LANDUSE — parks, forests, military zones etc.
+    // ══════════════════════════════════════════
+    if (sl === 'landuse') {
       if (type === 'fill') {
-        paintCopy['fill-color'] = '#22c55e';
-        paintCopy['fill-opacity'] = 0.25;
+        if (id === 'landuse_park') {
+           paintCopy['fill-color'] = [
+            'case',
+            // Military zones — MUST stand out for tactical awareness
+            ['in', ['get', 'pmap:kind'], ['literal', ['military', 'naval_base', 'airfield']]],
+            '#8a9a68',  // Olive drab — standard military color
+            // Parks & forests
+            ['in', ['get', 'pmap:kind'], ['literal', ['national_park', 'park', 'cemetery', 'protected_area', 'nature_reserve', 'forest', 'golf_course']]],
+            '#7bc87e',  // Rich park green
+            ['==', ['get', 'pmap:kind'], 'wood'],
+            '#6aad6d',  // Dense forest darker green
+            ['in', ['get', 'pmap:kind'], ['literal', ['scrub', 'grassland', 'grass']]],
+            '#9ad49c',  // Light grass green
+            ['==', ['get', 'pmap:kind'], 'glacier'],
+            '#d8e8f0',
+            ['==', ['get', 'pmap:kind'], 'sand'],
+            '#e8dcc0',
+            '#d0c8b8'
+          ];
+          paintCopy['fill-opacity'] = ['interpolate', ['linear'], ['zoom'], 6, 0.4, 10, 0.6, 14, 0.7];
+        } else if (id === 'landuse_urban_green') {
+          paintCopy['fill-color'] = '#88cc8a';
+          paintCopy['fill-opacity'] = 0.6;
+        } else if (id === 'landuse_hospital') {
+          paintCopy['fill-color'] = '#f0d0d0';
+          paintCopy['fill-opacity'] = 0.6;
+        } else if (id === 'landuse_industrial') {
+          paintCopy['fill-color'] = '#d0c8c0';
+          paintCopy['fill-opacity'] = 0.5;
+        } else if (id === 'landuse_school') {
+          paintCopy['fill-color'] = '#e8dcc0';
+          paintCopy['fill-opacity'] = 0.5;
+        } else if (id === 'landuse_beach') {
+          paintCopy['fill-color'] = '#f0e8c0';
+          paintCopy['fill-opacity'] = 0.7;
+        } else if (id === 'landuse_zoo') {
+          paintCopy['fill-color'] = '#a8d0b8';
+          paintCopy['fill-opacity'] = 0.5;
+        } else if (id === 'landuse_aerodrome') {
+          paintCopy['fill-color'] = '#d0d0d8';
+          paintCopy['fill-opacity'] = 0.5;
+        } else if (id === 'landuse_runway') {
+          paintCopy['fill-color'] = '#c0c0c8';
+        } else if (id === 'landuse_pedestrian') {
+          paintCopy['fill-color'] = '#e0d8c8';
+        } else if (id === 'landuse_pier') {
+          paintCopy['fill-color'] = '#d0c8c0';
+        } else {
+          // Generic landuse
+          paintCopy['fill-color'] = '#90c890';
+          paintCopy['fill-opacity'] = 0.3;
+        }
       } else if (type === 'line') {
-        paintCopy['line-color'] = '#16a34a';
+        paintCopy['line-color'] = '#5a9e5c';
       }
       return { ...layer, paint: paintCopy, layout: layoutCopy };
     }
 
-    // ── EARTH (base land) ──
-    if (sl === 'earth' || id.includes('earth')) {
+    // ══════════════════════════════════════════
+    // EARTH (base land) — warm beige tone
+    // ══════════════════════════════════════════
+    if (sl === 'earth' || id === 'earth') {
       if (type === 'fill') {
-        paintCopy['fill-color'] = '#e2e8f0';
+        paintCopy['fill-color'] = '#f0ece4';  // warm parchment base
       }
       return { ...layer, paint: paintCopy, layout: layoutCopy };
     }
 
-    // ── ROADS — color by class for tactical clarity ──
-    if (sl === 'roads' || id.includes('roads') || id.includes('road')) {
+    // ══════════════════════════════════════════
+    // ROADS — TACTICAL HIGH-CONTRAST COLORS + BOOSTED WIDTHS
+    // Key fix: override BOTH color AND width for field visibility
+    // ══════════════════════════════════════════
+    if (sl === 'roads') {
       if (type === 'line') {
-        // Highway = bright yellow-orange
+        const originalWidth = paintCopy['line-width'];
+        
+        // ── Highways (bright amber + red casing) ──
         if (id.includes('highway')) {
-          paintCopy['line-color'] = id.includes('casing') ? '#b45309' : '#f59e0b';
+          paintCopy['line-color'] = id.includes('casing') ? '#c0392b' : '#f39c12';
+          setBoostWidth(paintCopy, originalWidth, id.includes('casing') ? 1.3 : 1.5, 1);
         }
-        // Major roads = warm orange  
+        // ── Major roads (orange + dark casing) ──
         else if (id.includes('major')) {
-          paintCopy['line-color'] = id.includes('casing') ? '#9a3412' : '#ea580c';
+          paintCopy['line-color'] = id.includes('casing') ? '#a04000' : '#e67e22';
+          setBoostWidth(paintCopy, originalWidth, id.includes('casing') ? 1.2 : 1.4, 0.8);
         }
-        // Minor roads / links = slate gray
-        else if (id.includes('minor') || id.includes('link') || id.includes('other') || id.includes('service')) {
-          paintCopy['line-color'] = id.includes('casing') ? '#334155' : '#64748b';
+        // ── Minor roads (warm gray) ──
+        else if (id.includes('minor') && !id.includes('service')) {
+          paintCopy['line-color'] = id.includes('casing') ? '#7f8c8d' : '#bdc3c7';
+          setBoostWidth(paintCopy, originalWidth, 1.3, 0.5);
         }
-        // Rail = steel blue dashed
+        // ── Minor service roads (lighter gray) ──
+        else if (id.includes('service')) {
+          paintCopy['line-color'] = id.includes('casing') ? '#95a5a6' : '#d5dbdb';
+          setBoostWidth(paintCopy, originalWidth, 1.2, 0.4);
+        }
+        // ── Link roads ──
+        else if (id.includes('link')) {
+          paintCopy['line-color'] = id.includes('casing') ? '#a04000' : '#e67e22';
+          setBoostWidth(paintCopy, originalWidth, 1.2, 0.6);
+        }
+        // ── Rail = steel blue dashed ──
         else if (id.includes('rail')) {
-          paintCopy['line-color'] = '#6366f1';
+          paintCopy['line-color'] = '#5b6abf';
+          setBoostWidth(paintCopy, originalWidth, 1.5, 0.5);
+          paintCopy['line-opacity'] = 0.7;
         }
-        // Bridges = slightly lighter
+        // ── Runway/Taxiway ──
+        else if (id.includes('runway') || id.includes('taxiway')) {
+          paintCopy['line-color'] = '#8e8e9a';
+        }
+        // ── Pier ──
+        else if (id.includes('pier')) {
+          paintCopy['line-color'] = '#b8b8c0';
+        }
+        // ── Bridge roads (tinted blue-gray) ──
         else if (id.includes('bridge')) {
-          paintCopy['line-color'] = id.includes('casing') ? '#475569' : '#94a3b8';
+          paintCopy['line-color'] = id.includes('casing') ? '#566573' : '#aab7b8';
+          setBoostWidth(paintCopy, originalWidth, 1.2, 0.5);
         }
-        // Tunnels = dashed gray
+        // ── Tunnel roads (dashed, muted) ──
         else if (id.includes('tunnel')) {
-          paintCopy['line-color'] = '#94a3b8';
+          paintCopy['line-color'] = '#a0a0a8';
+          setBoostWidth(paintCopy, originalWidth, 1.1, 0.4);
         }
-        // Default road catch-all
+        // ── Other roads (catch-all) ──
         else {
-          paintCopy['line-color'] = '#64748b';
+          paintCopy['line-color'] = '#a0a0a8';
+          setBoostWidth(paintCopy, originalWidth, 1.2, 0.4);
         }
+      } else if (type === 'symbol') {
+        // Road labels — high contrast
+        paintCopy['text-color'] = '#2c3e50';
+        paintCopy['text-halo-color'] = '#ffffff';
+        paintCopy['text-halo-width'] = 2;
       }
       return { ...layer, paint: paintCopy, layout: layoutCopy };
     }
 
-    // ── BOUNDARIES ──
+    // ══════════════════════════════════════════
+    // BOUNDARIES — red dashed lines
+    // ══════════════════════════════════════════
     if (sl === 'boundaries' || id.includes('boundaries') || id.includes('boundary')) {
       if (type === 'line') {
-        paintCopy['line-color'] = '#ef4444';
-        paintCopy['line-width'] = id.includes('country') ? 1.5 : 0.8;
+        paintCopy['line-color'] = '#e74c3c';
+        paintCopy['line-width'] = id.includes('country') ? 2 : 1;
+        paintCopy['line-dasharray'] = [4, 2];
       }
       return { ...layer, paint: paintCopy, layout: layoutCopy };
     }
 
-    // ── TRANSIT ──
+    // ══════════════════════════════════════════
+    // TRANSIT — purple
+    // ══════════════════════════════════════════
     if (sl === 'transit' || id.includes('transit')) {
       if (type === 'line') {
-        paintCopy['line-color'] = '#8b5cf6';
+        paintCopy['line-color'] = '#8e44ad';
       }
       return { ...layer, paint: paintCopy, layout: layoutCopy };
     }
 
-    // ── BUILDINGS (hide 2D flat, we add 3D below) ──
+    // ══════════════════════════════════════════
+    // BUILDINGS (hide 2D flat, we add 3D below)
+    // ══════════════════════════════════════════
     if (id === 'buildings' || (sl === 'buildings' && type === 'fill')) {
       return { ...layer, layout: { ...layoutCopy, visibility: 'none' } };
     }
 
-    // ── LABELS — ensure font fallback ──
+    // ══════════════════════════════════════════
+    // POIs — improve visibility
+    // ══════════════════════════════════════════
+    if (id === 'pois' && type === 'symbol') {
+      paintCopy['text-color'] = '#2c3e50';
+      paintCopy['text-halo-color'] = '#ffffff';
+      paintCopy['text-halo-width'] = 1.5;
+      return { ...layer, paint: paintCopy, layout: layoutCopy };
+    }
+
+    // ══════════════════════════════════════════
+    // PLACES — city/town/village labels
+    // ══════════════════════════════════════════
+    if (sl === 'places' && type === 'symbol') {
+      paintCopy['text-color'] = '#1a2530';
+      paintCopy['text-halo-color'] = '#ffffff';
+      paintCopy['text-halo-width'] = 2;
+      return { ...layer, paint: paintCopy, layout: layoutCopy };
+    }
+
+    // ══════════════════════════════════════════
+    // LABELS — ensure font fallback + high contrast
+    // ══════════════════════════════════════════
     if (type === 'symbol' && layoutCopy['text-field']) {
       if (!layoutCopy['text-font'] || (Array.isArray(layoutCopy['text-font']) && layoutCopy['text-font'].some((f: string) => f.includes('Open Sans') || f.includes('Arial Unicode')))) {
         layoutCopy['text-font'] = ['Noto Sans Regular'];
+      }
+      // Ensure all labels have good contrast
+      if (!paintCopy['text-halo-width']) {
+        paintCopy['text-halo-color'] = '#ffffff';
+        paintCopy['text-halo-width'] = 1.5;
       }
     }
 
@@ -156,17 +426,187 @@ const getCustomLayers = () => {
     return layer;
   });
 
-  // Add 3D Extruded Buildings
+  // ══════════════════════════════════════════════════════════════════
+  // CRITICAL: Add layers for source-layers MISSING from @protomaps/basemaps
+  // The PMTiles contains 'natural' (zoom 2-15) and 'physical_line' (zoom 9-15)
+  // but basemaps v5 generates ZERO layers for them — leaving mountains blank!
+  // ══════════════════════════════════════════════════════════════════
+
+  // ── NATURAL FILL — forests, scrub, wetland, bare rock, sand, glacier ──
+  // This is the MOST IMPORTANT missing layer — it colors mountains & hills!
+  // Insert BEFORE buildings so it renders underneath everything
+  const naturalInsertIndex = modifiedLayers.findIndex(l => l.id === 'buildings' || l['source-layer'] === 'buildings');
+  const naturalLayers = [
+    {
+      id: 'natural-fill',
+      type: 'fill',
+      source: 'offline-map',
+      'source-layer': 'natural',
+      paint: {
+        'fill-color': [
+          'match', ['get', 'pmap:kind'],
+          'wood',       '#5a9e5c',   // Dense forest — dark green
+          'forest',     '#5a9e5c',   // Forest — dark green  
+          'scrub',      '#8aad6d',   // Scrub/bush — olive green
+          'grassland',  '#a0c890',   // Grassland — light green
+          'grass',      '#a8d090',   // Grass — bright green
+          'wetland',    '#7aad8d',   // Wetland — blue-green
+          'marsh',      '#7aad8d',   // Marsh — blue-green
+          'bare_rock',  '#c0b8a0',   // Bare rock/mountain — tan/brown
+          'rock',       '#c0b8a0',   // Rock — tan/brown
+          'scree',      '#b8b0a0',   // Scree — gray-brown
+          'sand',       '#e0d8b8',   // Sand — light tan
+          'glacier',    '#d8e8f0',   // Glacier — icy blue
+          'heath',      '#a0b880',   // Heath — yellow-green
+          'fell',       '#b0a890',   // Mountain fell — gray-brown
+          'cliff',      '#a8a098',   // Cliff — dark gray
+          'peak',       '#8a8078',   // Peak — darker
+          '#6aad6d'                  // Default — medium green (forest)
+        ],
+        'fill-opacity': [
+          'interpolate', ['linear'], ['zoom'],
+          2, 0.4,    // Visible even at overview
+          6, 0.5,
+          10, 0.6,   // Strong at city zoom
+          14, 0.65,  // Bold at detail zoom
+          18, 0.6
+        ]
+      }
+    },
+    {
+      id: 'natural-outline',
+      type: 'line',
+      source: 'offline-map',
+      'source-layer': 'natural',
+      minzoom: 10,
+      paint: {
+        'line-color': [
+          'match', ['get', 'pmap:kind'],
+          'wood',     '#4a8e4c',
+          'forest',   '#4a8e4c',
+          'scrub',    '#7a9d5d',
+          'bare_rock','#a0988a',
+          '#5a9d5c'
+        ],
+        'line-width': 0.5,
+        'line-opacity': 0.3
+      }
+    }
+  ];
+
+  // ── PHYSICAL_LINE — rivers, streams, canals at higher zooms ──
+  const physicalLineLayers = [
+    {
+      id: 'physical-line-river',
+      type: 'line',
+      source: 'offline-map',
+      'source-layer': 'physical_line',
+      filter: ['in', ['get', 'pmap:kind'], ['literal', ['river', 'canal']]],
+      paint: {
+        'line-color': '#3a90c0',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.5, 14, 2, 18, 4],
+        'line-opacity': 0.7
+      }
+    },
+    {
+      id: 'physical-line-stream',
+      type: 'line',
+      source: 'offline-map',
+      'source-layer': 'physical_line',
+      filter: ['in', ['get', 'pmap:kind'], ['literal', ['stream', 'ditch', 'drain']]],
+      minzoom: 12,
+      paint: {
+        'line-color': '#5aade2',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 12, 0.3, 14, 0.8, 18, 2],
+        'line-opacity': 0.6
+      }
+    }
+  ];
+
+  // Insert natural layers right before buildings
+  if (naturalInsertIndex > 0) {
+    modifiedLayers.splice(naturalInsertIndex, 0, ...naturalLayers, ...physicalLineLayers);
+  } else {
+    // Fallback: push before the end
+    modifiedLayers.push(...naturalLayers, ...physicalLineLayers);
+  }
+
+  // Add 3D Extruded Buildings — prominent for tactical detail
   modifiedLayers.push({
     id: 'buildings-3d',
     type: 'fill-extrusion',
     source: 'offline-map',
     'source-layer': 'buildings',
+    minzoom: 13,
     paint: {
-      'fill-extrusion-color': '#9ca3af',
-      'fill-extrusion-height': ['coalesce', ['get', 'height'], 8],
+      'fill-extrusion-color': [
+        'interpolate', ['linear'], ['get', 'height'],
+        0, '#a09890',   // Low buildings: warm brown-gray
+        10, '#908880',  // Medium: darker
+        20, '#807870',  // Tall: even darker
+        40, '#706860'   // Very tall: darkest
+      ],
+      'fill-extrusion-height': [
+        'interpolate', ['linear'], ['zoom'],
+        13, ['*', ['coalesce', ['get', 'height'], 12], 0.5],
+        15, ['coalesce', ['get', 'height'], 12],
+        18, ['coalesce', ['get', 'height'], 12]
+      ],
       'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
-      'fill-extrusion-opacity': 0.8
+      'fill-extrusion-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        13, 0.4,
+        15, 0.8,
+        18, 0.85
+      ]
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // MILITARY ZONE OVERLAY — renders ON TOP of everything for maximum visibility
+  // Double-border + tinted fill for unmistakable tactical identification
+  // ══════════════════════════════════════════════════════════════════
+  
+  // Outer glow border — wider, softer for spatial awareness
+  modifiedLayers.push({
+    id: 'military-zone-border-glow',
+    type: 'line',
+    source: 'offline-map',
+    'source-layer': 'landuse',
+    filter: ['in', ['get', 'pmap:kind'], ['literal', ['military', 'naval_base', 'airfield']]],
+    paint: {
+      'line-color': '#c0392b',   // Red glow
+      'line-width': ['interpolate', ['linear'], ['zoom'], 10, 3, 14, 6, 18, 10],
+      'line-opacity': 0.25,
+      'line-blur': 3
+    }
+  });
+  
+  // Fill — olive tint 
+  modifiedLayers.push({
+    id: 'military-zone-fill',
+    type: 'fill',
+    source: 'offline-map',
+    'source-layer': 'landuse',
+    filter: ['in', ['get', 'pmap:kind'], ['literal', ['military', 'naval_base', 'airfield']]],
+    paint: {
+      'fill-color': '#556b2f',   // Dark olive green
+      'fill-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.12, 12, 0.18, 16, 0.22]
+    }
+  });
+  
+  // Inner dashed border — sharp, high-contrast
+  modifiedLayers.push({
+    id: 'military-zone-border',
+    type: 'line',
+    source: 'offline-map',
+    'source-layer': 'landuse',
+    filter: ['in', ['get', 'pmap:kind'], ['literal', ['military', 'naval_base', 'airfield']]],
+    paint: {
+      'line-color': '#c0392b',   // Bold red
+      'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1.5, 14, 3, 18, 5],
+      'line-dasharray': [5, 3],
+      'line-opacity': 0.85
     }
   });
 
@@ -192,9 +632,13 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const mapVersion = useMeshStore(state => state.mapVersion);
   const nodes = useMeshStore(state => state.nodes);
+  const nodeTrails = useMeshStore(state => state.nodeTrails);
+  const showNodeTrails = useMeshStore(state => state.showNodeTrails);
+  const setShowNodeTrails = useMeshStore(state => state.setShowNodeTrails);
   
   const [pathStart, setPathStart] = useState<[number, number] | null>(null);
   const [pathEnd, setPathEnd] = useState<[number, number] | null>(null);
+  const [isTacticalToolsOpen, setIsTacticalToolsOpen] = useState(true);
   
   const pathStartRef = useRef<[number, number] | null>(null);
   const pathEndRef = useRef<[number, number] | null>(null);
@@ -311,6 +755,44 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
     }
   }, [nodes, isMapLoaded]);
 
+  // Sync node trails to map
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map || !isMapLoaded) return;
+    
+    const source = map.getSource('node-trails') as maplibregl.GeoJSONSource;
+    if (source) {
+      if (!showNodeTrails) {
+        source.setData({ type: 'FeatureCollection', features: [] });
+        return;
+      }
+      
+      const features: any[] = [];
+      const colors = ['#3b82f6', '#ef4444', '#22c55e', '#eab308', '#a855f7', '#06b6d4'];
+      
+      Object.entries(nodeTrails).forEach(([_, trail], index) => {
+        if (trail.length > 0) {
+          const color = colors[index % colors.length];
+          // Line
+          if (trail.length > 1) {
+            features.push({
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: trail },
+              properties: { color }
+            });
+          }
+          // Start Marker
+          features.push({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: trail[0] },
+            properties: { color, type: 'start' }
+          });
+        }
+      });
+      source.setData({ type: 'FeatureCollection', features });
+    }
+  }, [nodeTrails, showNodeTrails, isMapLoaded]);
+
   useEffect(() => {
     if (!protocolAdded) {
       const protocol = new Protocol();
@@ -342,6 +824,10 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
             type: 'vector', 
             url: `pmtiles://${mapUrl}`,
             attribution: '<a href="https://protomaps.com">Protomaps</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
+          },
+          'node-trails': {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] }
           },
           'mesh-nodes': {
             type: 'geojson',
@@ -380,6 +866,33 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
           {
             id: 'ai-path-line', type: 'line', source: 'ai-path',
             paint: { 'line-color': '#0ea5e9', 'line-width': 4 }
+          },
+          {
+            id: 'node-trails-line', type: 'line', source: 'node-trails',
+            filter: ['==', '$type', 'LineString'],
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
+            paint: { 
+              'line-color': ['get', 'color'], 
+              'line-width': 4,
+              'line-opacity': 0.6,
+              'line-dasharray': [1, 2] // Tactical dashed line
+            }
+          },
+          {
+            id: 'node-trails-start', type: 'symbol', source: 'node-trails',
+            filter: ['all', ['==', '$type', 'Point'], ['==', 'type', 'start']],
+            layout: {
+              'text-field': '🏁 START',
+              'text-size': 10,
+              'text-offset': [0, 1],
+              'text-anchor': 'top',
+              'text-font': ['Noto Sans Bold']
+            },
+            paint: {
+              'text-color': ['get', 'color'],
+              'text-halo-color': '#0f172a',
+              'text-halo-width': 2
+            }
           },
           {
             id: 'mesh-nodes-circle', type: 'circle', source: 'mesh-nodes',
@@ -849,18 +1362,60 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
       
       {/* Custom Drawing Toolbar - Bottom Left - Military Style */}
       {isMapLoaded && (
-         <div style={{ position: 'absolute', bottom: 20, left: 10, zIndex: 10, display: 'flex', flexDirection: 'column', gap: '6px', width: 'min(220px, calc(100vw - 60px))' }}>
+         <div style={{
+            position: 'absolute',
+            bottom: '24px',
+            left: 0,
+            zIndex: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            pointerEvents: 'none',
+            width: '280px',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: isTacticalToolsOpen ? 'translateX(24px)' : 'translateX(-280px)'
+         }}>
+            <button
+               onClick={() => setIsTacticalToolsOpen(!isTacticalToolsOpen)}
+               title={isTacticalToolsOpen ? 'Thu gọn' : 'Mở công cụ'}
+               style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: '-32px',
+                  transform: 'translateY(-50%)',
+                  background: '#3f6212',
+                  color: '#bef264',
+                  border: '1px solid #4d7c0f',
+                  borderLeft: 'none',
+                  borderRadius: '0 6px 6px 0',
+                  width: '32px',
+                  height: '60px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '2px 0 5px rgba(0,0,0,0.5)',
+                  zIndex: 11,
+                  fontSize: '1rem',
+                  pointerEvents: 'auto'
+               }}
+            >
+               {isTacticalToolsOpen ? '◀' : '▶'}
+            </button>
+
+            {/* Tactical tools content */}
+            <div style={{ pointerEvents: 'auto' }}>
             {activeMode && activeMode.startsWith('draw_') && (
                <div style={{ background: 'rgba(234, 179, 8, 0.9)', color: '#000', padding: '6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '4px', border: '1px solid #ca8a04' }}>
                   {t('click_to_draw')}
                </div>
             )}
             
-            <div style={{ background: 'rgba(15, 23, 42, 0.85)', border: '1px solid #3f6212', borderRadius: '6px', overflow: 'hidden', backdropFilter: 'blur(4px)' }}>
-                <div style={{ background: '#3f6212', color: '#fff', fontSize: '0.7rem', padding: '4px 8px', fontWeight: 'bold', letterSpacing: '1px' }}>
+            <div style={{ background: 'rgba(15, 23, 42, 0.85)', border: '1px solid #3f6212', borderRadius: '4px', overflow: 'hidden', backdropFilter: 'blur(4px)' }}>
+                <div style={{ background: '#3f6212', color: '#fff', fontSize: '0.6rem', padding: '2px 4px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
                     {t('tactical_tools')}
                 </div>
-                <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ padding: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     {/* Icon Picker Grid - shown when point mode is active */}
                     {activeMode === 'draw_point' && (
                       <div style={{ marginBottom: '4px' }}>
@@ -910,7 +1465,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                        style={{ 
                            background: activeMode === 'draw_point' ? '#4d7c0f' : 'transparent', 
                            color: activeMode === 'draw_point' ? '#fff' : '#a3a8b4', 
-                           border: '1px solid #4d7c0f', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
+                           border: '1px solid #4d7c0f', padding: '4px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
                        }}
                     >
                        📌 {t('draw_point')}
@@ -928,7 +1483,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                        style={{ 
                            background: measureMode ? '#b45309' : 'transparent', 
                            color: measureMode ? '#fff' : '#a3a8b4', 
-                           border: '1px solid #b45309', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
+                           border: '1px solid #b45309', padding: '4px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
                        }}
                     >
                        📏 ĐO CỰ LY
@@ -940,11 +1495,45 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                        style={{ 
                            background: showNodeDistances ? '#0e7490' : 'transparent', 
                            color: showNodeDistances ? '#fff' : '#a3a8b4', 
-                           border: '1px solid #0e7490', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
+                           border: '1px solid #0e7490', padding: '4px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
                        }}
                     >
                        🔗 {showNodeDistances ? 'ẨN' : 'HIỆN'} CỰ LY NODES
                     </button>
+
+                    {/* Node Trails toggle */}
+                    <button 
+                       onClick={() => setShowNodeTrails(!showNodeTrails)}
+                       style={{ 
+                           background: showNodeTrails ? '#6b21a8' : 'transparent', 
+                           color: showNodeTrails ? '#fff' : '#a3a8b4', 
+                           border: '1px solid #6b21a8', padding: '4px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
+                       }}
+                    >
+                       👁️ {showNodeTrails ? t('hide_trails') : t('show_trails')}
+                    </button>
+
+                    <button 
+                       onClick={() => {
+                         const addEvent = useMeshStore.getState().addEvent;
+                         addEvent({
+                           id: Date.now(),
+                           node_id: 3,
+                           event_type: 'ai_predict_heat_stress',
+                           severity: 'CRITICAL',
+                           message: 'AI Scan Hoàn tất: Dấu hiệu kiệt sức do nhiệt tại Node 3.',
+                           created_at: new Date().toISOString()
+                         });
+                       }}
+                       style={{ 
+                           background: 'rgba(239, 68, 68, 0.2)', 
+                           color: '#fca5a5', 
+                           border: '1px solid #ef4444', padding: '4px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold', textAlign: 'left', transition: 'all 0.2s' 
+                       }}
+                    >
+                       🤖 AI SCAN
+                    </button>
+                    
                     <button 
                        onClick={async () => {
                          const draw = drawRef.current;
@@ -962,12 +1551,13 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
                          updateMarkerOverlayRef.current();
                        }}
                        style={{ 
-                           background: 'transparent', color: '#ef4444', border: '1px solid #991b1b', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', textAlign: 'left' 
+                           background: 'transparent', color: '#ef4444', border: '1px solid #991b1b', padding: '4px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold', textAlign: 'left' 
                        }}
                     >
                        ❌ {t('delete_selected')}
                     </button>
                 </div>
+            </div>
             </div>
          </div>
       )}
@@ -1003,13 +1593,42 @@ const TacticalMap: React.FC<TacticalMapProps> = ({
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button 
-              onClick={() => {
+              onClick={async (e) => {
+                  const btn = e.currentTarget;
+                  const originalText = btn.innerText;
+                  const type = selectedGraphic.properties?.type || selectedGraphic.properties?.user_type || graphicType;
                   const coordText = `${selectedGraphic.geometry.coordinates[1].toFixed(5)}, ${selectedGraphic.geometry.coordinates[0].toFixed(5)}`;
                   const textToHex = (text: string) => text.split('').map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
-                  const payload = { target_node_id: 65535, command_type: 'BROADCAST', payload_hex: textToHex(`[${graphicType}] ${coordText}`) };
-                  fetch('/api/commands', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                  const payload = { target_node_id: 65535, command_type: 'BROADCAST', payload_hex: textToHex(`[${type}] ${coordText}`) };
+                  
+                  btn.innerText = "Đang gửi...";
+                  try {
+                      const response = await fetch('/api/commands/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                      if (!response.ok) throw new Error("Server error");
+                      
+                      btn.innerText = "Đã gửi ✓";
+                      btn.style.background = "#10b981";
+                      
+                      // Log to events
+                      const addEvent = useMeshStore.getState().addEvent;
+                      addEvent({
+                         id: Date.now(),
+                         node_id: 0,
+                         event_type: 'broadcast',
+                         severity: 'INFO',
+                         message: `Đã phát sóng tọa độ: [${type}] ${coordText}`,
+                         created_at: new Date().toISOString()
+                      });
+                  } catch (err) {
+                      btn.innerText = "Lỗi!";
+                      btn.style.background = "#ef4444";
+                  }
+                  setTimeout(() => {
+                      btn.innerText = originalText;
+                      btn.style.background = "#3b82f6";
+                  }, 2000);
               }}
-              style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', flex: 1 }}
+              style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', flex: 1, transition: 'all 0.3s' }}
             >
               {t('broadcast_coord')}
             </button>
