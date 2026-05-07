@@ -327,11 +327,38 @@ Kết hợp tư tưởng của `AliFlux/VectorTileRenderer` với `maplibre`, lo
    - **Vector Tiles (Đường xá, Tòa nhà):** Đã có sẵn qua `offline.pmtiles` (Protomaps), nhưng cần cấu hình lại `paint` layers (Màu sắc địa hình đa dạng thay vì chỉ trắng đen, kích hoạt `fill-extrusion` để đẩy nhà cửa lên thành khối 3D).
    - **Terrain 3D (Địa hình đồi núi):** MapLibre hỗ trợ tính năng `terrain`. Cần tải thêm 1 file `terrain.pmtiles` (định dạng Terrarium RGB DEM - Digital Elevation Model) lưu tại Pi. Khi có DEM, MapLibre sẽ tự uốn cong lớp nền vệ tinh và đường xá theo dạng đồi núi thực tế.
 
-### Các công việc dự kiến (Phân bổ vào Phase 5):
-- [ ] Tìm/tải file dữ liệu **DEM (Digital Elevation Model)** khu vực Nha Trang (file RGB raster pmtiles) để làm dữ liệu độ cao.
-- [ ] Chỉnh sửa `TacticalMap.tsx`: Kích hoạt `map.setTerrain({ 'source': 'terrain-source', 'exaggeration': 1.5 })`.
-- [ ] Kích hoạt `fill-extrusion` layer trong MapLibre cho các object có thuộc tính `building` (nhà cửa 3D).
-- [ ] Viết lại hàm tạo `style` (từ bỏ style LIGHT mặc định của Protomaps) để áp dụng bảng màu phong phú (xanh lá cho công viên, xám cho đô thị, xanh dương cho nước) giống như `OSM Liberty` hay `VectorTileRenderer`.
+### Các công việc dự kiến (Phân bổ vào Phase 9 - ĐÃ HOÀN THÀNH):
+- [x] Tìm/tải file dữ liệu **DEM (Digital Elevation Model)** khu vực Nha Trang (file RGB raster pmtiles) để làm dữ liệu độ cao: Viết script `tools/download_terrain.py`, tải 70 tiles DEM từ AWS Open Data. Convert sang `terrain.pmtiles`.
+- [x] Chỉnh sửa `TacticalMap.tsx`: Kích hoạt `terrain-source` và `map.setTerrain({ 'source': 'terrain-source', 'exaggeration': 1.5 })`.
+- [x] Kích hoạt `fill-extrusion` layer trong MapLibre cho các object có thuộc tính `building` (nhà cửa 3D), extrusion height sử dụng `coalesce` với property `height`.
+- [x] Viết lại hàm tạo `style` (`getCustomLayers`): Áp dụng bảng màu phong phú (xanh lá cho công viên, xanh dương cho nước) giống như `OSM Liberty` hay `VectorTileRenderer`.
+- [x] Cập nhật UI: Thêm nút **3D VIEW** để tự động rotate camera pitch lên 60 độ (nhìn xiên) hoặc trả về 0 độ (nhìn thẳng).
+
+**Kết quả:**
+- Bản đồ Vector có nhiều màu sắc đẹp hơn so với mặc định.
+- Tòa nhà nổi lên thành khối 3D.
+- Khi nghiêng bản đồ (click nút 3D VIEW), địa hình đồi núi thực tế khu vực Nha Trang sẽ nổi lên rõ ràng.
+- Upload thành công `terrain.pmtiles` và deploy Frontend lên Raspberry Pi 5.
+
+---
+
+## Session 2026-05-07 (Part 2) — Brainstorm: UI Scroll & TBEAM I2C/LoRa Bug Fixes
+
+**Ngày:** 2026-05-07
+**Trạng thái:** 🧠 Đang phân tích
+
+### Yêu cầu của người dùng
+1. **Frontend:** Tính năng gửi tin nhắn ở sidebar bên phải không sử dụng được vì sidebar không có thanh cuộn dọc (scrollbar) làm nút gửi tin nhắn bị khuất.
+2. **Firmware TBEAM:** Không nhận được dữ liệu cảm biến qua I2C và cả gateway lẫn node TBEAM đều không nhận được tin nhắn qua LoRa.
+
+### Phân tích vấn đề & Kế hoạch
+1. **Vấn đề Sidebar (TacticalPanel):**
+   - Panel hiện tại đang cấu hình CSS `flex: 1` hoặc `overflow` chưa đúng cách, khiến nội dung bị tràn (overflow-y) mà không hiển thị thanh cuộn, đặc biệt là khi mở phần Compose Message.
+   - Giải pháp: Chỉnh lại flexbox trong `TacticalPanel.tsx` để đảm bảo khu vực chat / compose message có thể cuộn được (`overflow-y: auto`).
+2. **Vấn đề Firmware TBEAM:**
+   - **I2C:** Kiểm tra file `config.h` và `sensor_manager.cpp` của `soldier_node_production` xem cấu hình chân SDA/SCL cho TBEAM có đúng chưa (TBEAM v1.1 hay v1.2 thường dùng SDA=21, SCL=22 cho PMU và các thiết bị ngoại vi). Đặc biệt khi sử dụng module AXP2101/AXP192 cần khởi tạo đúng I2C.
+   - **LoRa Nhận Tin Nhắn:** Việc TBEAM gateway/nodemesh không nhận được tin nhắn có thể do cấu hình chân DIO0, DIO1, DIO2, RST, CS không khớp với thiết kế phần cứng TBEAM, hoặc vòng lặp `pollReceive` bị block.
+   - Giải pháp: Kiểm tra mã nguồn, đối chiếu `config.h` với sơ đồ chân thực tế của board LILYGO T-Beam.
 
 ## Project meta intake (FEAT-009)
 

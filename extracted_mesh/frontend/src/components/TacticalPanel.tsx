@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useMeshStore, type SoldierNode } from '../stores/useMeshStore';
+import EventLog from './EventLog';
 
 interface TacticalPanelProps {
   activeTab: 'nodes' | 'chat' | 'logs';
@@ -219,7 +220,7 @@ const TacticalPanel: React.FC<TacticalPanelProps> = ({ activeTab }) => {
 
       {/* Command & Control Tab */}
       {activeTab === 'chat' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px', backgroundColor: '#1a1f16' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px', backgroundColor: '#1a1f16', overflowY: 'auto', minHeight: 0 }}>
           
           {/* Chat History */}
           <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', marginBottom: '16px', border: '1px solid #2d3328', borderRadius: '4px', backgroundColor: '#11140f', padding: '12px' }}>
@@ -367,10 +368,10 @@ const TacticalPanel: React.FC<TacticalPanelProps> = ({ activeTab }) => {
         </div>
       )}
 
-      {/* Logs Tab is rendered in App.tsx */}
+      {/* Logs Tab */}
       {activeTab === 'logs' && (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>
-          Event Logs view is active
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <EventLog />
         </div>
       )}
 
