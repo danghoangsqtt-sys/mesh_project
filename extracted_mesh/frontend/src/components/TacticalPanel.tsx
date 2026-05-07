@@ -18,8 +18,9 @@ const TacticalPanel: React.FC<TacticalPanelProps> = ({ activeTab }) => {
   const [targetType, setTargetType] = useState<'broadcast'|'specific'>('broadcast');
   const [targetNodeId, setTargetNodeId] = useState<string>('');
   const [isSending, setIsSending] = useState(false);
-  const [chatHistory, setChatHistory] = useState<Array<{id: number, text: string, time: string, target: string, status: 'sent'|'error'}>>([]);
+  const [chatHistory, setChatHistory] = useState<Array<{id: number, text: string, time: string, target: string, status: 'sent'|'error'|'ai_response'}>>([]);
   const [isEditingQuickMsgs, setIsEditingQuickMsgs] = useState(false);
+  const [isAiMode, setIsAiMode] = useState(false);
 
   const isDemoMode = useMeshStore(state => state.isDemoMode);
   const quickMessages = useMeshStore(state => state.quickMessages);
@@ -154,7 +155,47 @@ const TacticalPanel: React.FC<TacticalPanelProps> = ({ activeTab }) => {
     }
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+
+    if (isAiMode) {
+      setIsSending(true);
+      const newMsg = { id: Date.now(), text: message, time: new Date().toLocaleTimeString(), target: 'AI Assistant', status: 'sent' as const };
+      setChatHistory(prev => [...prev, newMsg]);
+
+      try {
+        // MUST use relative URL /api/llm/chat to avoid CORS when served by Nginx
+        const res = await fetch('/api/llm/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        
+        const aiResponseText = `🧠 [AI ACTION]: ${data.action}\nPayload: ${data.payload}\nTarget: ${data.target}`;
+        setChatHistory(prev => [...prev, { 
+          id: Date.now() + 1, 
+          text: aiResponseText, 
+          time: new Date().toLocaleTimeString(), 
+          target: 'Commander', 
+          status: 'ai_response' as const
+        }]);
+
+        // Auto-execute if valid action
+        if (data.action === "SEND_SOS" || data.action === "BROADCAST_MSG") {
+            const actualType = data.target === 'ALL' ? 'broadcast' : 'specific';
+            await sendMessageRequest(data.payload, actualType, data.target === 'ALL' ? '' : data.target);
+        }
+
+      } catch (err) {
+        setChatHistory(prev => prev.map(m => m.id === newMsg.id ? { ...m, status: 'error' } : m));
+      } finally {
+        setIsSending(false);
+        setMessage('');
+      }
+      return;
+    }
+
     sendMessageRequest(message.trim(), targetType, targetNodeId);
   };
 
@@ -242,6 +283,9 @@ const TacticalPanel: React.FC<TacticalPanelProps> = ({ activeTab }) => {
                     {msg.status === 'error' && (
                       <div style={{ color: '#ef4444', fontSize: '0.7rem', marginTop: '4px', fontWeight: 'bold' }}>FAILED TO SEND</div>
                     )}
+                    {msg.status === 'ai_response' && (
+                      <div style={{ color: '#a855f7', fontSize: '0.7rem', marginTop: '4px', fontWeight: 'bold' }}>AI EXECUTED</div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -324,7 +368,7 @@ const TacticalPanel: React.FC<TacticalPanelProps> = ({ activeTab }) => {
               </button>
             </div>
 
-            {targetType === 'specific' && (
+            {targetType === 'specific' && !isAiMode && (
               <select 
                 value={targetNodeId} 
                 onChange={(e) => setTargetNodeId(e.target.value)}
@@ -337,12 +381,21 @@ const TacticalPanel: React.FC<TacticalPanelProps> = ({ activeTab }) => {
               </select>
             )}
 
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+              <button 
+                onClick={() => setIsAiMode(!isAiMode)}
+                style={{ background: isAiMode ? '#a855f7' : 'transparent', color: isAiMode ? '#fff' : '#a855f7', border: '1px solid #a855f7', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+              >
+                {isAiMode ? '🤖 AI Copilot ON' : '🤖 Enable AI Copilot'}
+              </button>
+            </div>
+
             <textarea 
-              placeholder={t('type_msg')} 
+              placeholder={isAiMode ? "Ra lệnh bằng lời nói (VD: Gửi thông báo khẩn rút lui cho toàn đội)" : t('type_msg')} 
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               disabled={isSending}
-              style={{ minHeight: '80px', background: '#2d3328', border: '1px solid #4b5563', borderRadius: '4px', padding: '12px', color: '#fff', fontSize: '1rem', marginBottom: '8px', resize: 'vertical', fontFamily: 'monospace' }}
+              style={{ minHeight: '80px', background: isAiMode ? '#2e1065' : '#2d3328', border: isAiMode ? '1px solid #a855f7' : '1px solid #4b5563', borderRadius: '4px', padding: '12px', color: '#fff', fontSize: '1rem', marginBottom: '8px', resize: 'vertical', fontFamily: 'monospace' }}
             />
           </div>
           

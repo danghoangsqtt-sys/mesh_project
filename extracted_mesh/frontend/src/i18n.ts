@@ -67,7 +67,24 @@ const resources = {
       "download_map": "Download Map",
       "cancel": "Cancel",
       "downloading": "Downloading...",
-      "map_source_url": "PMTiles Source URL (Optional)"
+      "map_source_url": "PMTiles Source URL (Optional)",
+      "lz": "Landing Zone (LZ)",
+      "ex": "Extraction (EX)",
+      "rv": "Rendezvous (RV)",
+      "base": "Base Camp",
+      "poi": "Point of Interest",
+      "safe_zone": "Safe Zone",
+      "danger_zone": "Danger Zone",
+      "general_area": "General Area",
+      "draw_point": "[+] POINT",
+      "draw_zone": "[⬟] ZONE",
+      "delete_selected": "[X] DELETE",
+      "click_to_draw": "⚠️ CLICK MAP TO DRAW",
+      "tactical_tools": "TACTICAL TOOLS",
+      "selected_point": "SELECTED: POINT",
+      "selected_zone": "SELECTED: ZONE",
+      "copy_coord": "Copy",
+      "broadcast_coord": "Broadcast to Mesh"
     }
   },
   vi: {
@@ -135,7 +152,24 @@ const resources = {
       "download_map": "Tải Bản Đồ",
       "cancel": "Hủy",
       "downloading": "Đang tải...",
-      "map_source_url": "URL nguồn PMTiles (Tùy chọn)"
+      "map_source_url": "URL nguồn PMTiles (Tùy chọn)",
+      "lz": "Khu vực Bãi đáp (LZ)",
+      "ex": "Điểm Máy bay đón (EX)",
+      "rv": "Điểm tập kết (RV)",
+      "base": "Căn cứ / Trú quân",
+      "poi": "Điểm chú ý",
+      "safe_zone": "Vùng An toàn",
+      "danger_zone": "Vùng Nguy hiểm",
+      "general_area": "Khu vực chung",
+      "draw_point": "[+] CHẤM ĐIỂM",
+      "draw_zone": "[⬟] KHOANH VÙNG",
+      "delete_selected": "[X] XÓA CHỌN",
+      "click_to_draw": "⚠️ BẤM VÀO BẢN ĐỒ ĐỂ VẼ",
+      "tactical_tools": "CÔNG CỤ CHIẾN THUẬT",
+      "selected_point": "ĐÃ CHỌN: ĐIỂM",
+      "selected_zone": "ĐÃ CHỌN: VÙNG",
+      "copy_coord": "Sao chép",
+      "broadcast_coord": "Gửi Tọa độ xuống Mesh"
     }
   }
 };

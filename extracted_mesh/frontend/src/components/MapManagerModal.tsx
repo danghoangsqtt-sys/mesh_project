@@ -23,9 +23,13 @@ const MapManagerModal: React.FC<MapManagerModalProps> = ({ onClose }) => {
   const [sourceUrl, setSourceUrl] = useState<string>('');
   
   const [isRequesting, setIsRequesting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [apiError, setApiError] = useState('');
 
   const isDownloading = mapDownloadProgress > 0 && mapDownloadProgress < 100;
+  // Derive error message at render time — avoids setState-in-effect cascades
+  const errorMsg = mapDownloadProgress < 0
+    ? (mapDownloadStatus || 'Lỗi tải bản đồ')
+    : apiError;
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -88,26 +92,15 @@ const MapManagerModal: React.FC<MapManagerModalProps> = ({ onClose }) => {
 
   const showProgress = isRequesting || isDownloading || mapDownloadStatus !== '' || errorMsg !== '';
 
-  useEffect(() => {
-    if (mapDownloadProgress < 0) {
-      setErrorMsg(mapDownloadStatus || 'Lỗi tải bản đồ');
-      setIsRequesting(false);
-    } else if (mapDownloadProgress === 100) {
-      setIsRequesting(false);
-    }
-  }, [mapDownloadProgress, mapDownloadStatus]);
-
   const handleDownload = async () => {
     if (isDownloading || isRequesting) return;
-    setErrorMsg('');
+    setApiError('');
     setIsRequesting(true);
-    
+
     try {
       const res = await fetch('/api/maps/download', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           min_lon: parseFloat(minLon),
           min_lat: parseFloat(minLat),
@@ -116,13 +109,13 @@ const MapManagerModal: React.FC<MapManagerModalProps> = ({ onClose }) => {
           source_url: sourceUrl || undefined
         }),
       });
-      
+
       const data = await res.json();
       if (!res.ok) {
-        setErrorMsg(data.detail || 'Download failed to start');
+        setApiError(data.detail || 'Download failed to start');
       }
     } catch (err) {
-      setErrorMsg('Network error starting download');
+      setApiError('Network error starting download');
     } finally {
       setIsRequesting(false);
     }

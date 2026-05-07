@@ -7,7 +7,11 @@ import NodeConfigModal from './NodeConfigModal';
 const TacticalPanel: React.FC = () => {
   const { t } = useTranslation();
   const nodes = useMeshStore((state) => state.nodes);
-  const nodeList = Object.values(nodes);
+  const STALE_MS = 15_000;
+  const nodeList = Object.values(nodes).filter((n) => {
+    if (!n.last_seen) return true;
+    return Date.now() - new Date(n.last_seen).getTime() < STALE_MS;
+  });
   const [selectedNode, setSelectedNode] = useState<number | null>(null);
   const [configNode, setConfigNode] = useState<SoldierNode | null>(null);
 

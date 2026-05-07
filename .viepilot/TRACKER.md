@@ -74,6 +74,13 @@
 | 8.2 | Map Manager Frontend UI | ✅ Done | Modal & Progress tracking |
 | 8.3 | Tactical UI Redesign | ✅ Done | Dark premium theme, health bars |
 
+### Phase 9 — Advanced 3D Terrain & Multi-color Vector Map (3/3 tasks)
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 9.1 | Multi-color Vector Style | ✅ Done | style.json customized for OSM Liberty colors |
+| 9.2 | 3D Buildings | ✅ Done | fill-extrusion enabled on building layers |
+| 9.3 | 3D Terrain | ✅ Done | terrain.pmtiles downloaded & setTerrain enabled |
+
 | Version | Date | Phase | Notes |
 |---------|------|-------|-------|
 | 0.1.0 | 2026-05-04 | Phase 1 | Backend foundation complete |

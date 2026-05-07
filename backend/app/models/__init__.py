@@ -6,10 +6,12 @@ from app.models.soldier import (
     EventEntity,
     CommandEntity,
 )
+from app.models.tactical import TacticalGraphicEntity
 
 __all__ = [
     "SoldierEntity",
     "PositionHistoryEntity",
     "EventEntity",
     "CommandEntity",
+    "TacticalGraphicEntity",
 ]

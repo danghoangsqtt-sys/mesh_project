@@ -1,25 +1,51 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-05T21:10:00+07:00",
-  "phase": "8",
-  "phase_name": "PMTiles Downloader & Tactical UI Redesign",
-  "task": "8.3",
-  "total_tasks": "3",
+  "timestamp": "2026-05-07T14:10:00+07:00",
+  "phase": "hotfix-zone-visualization",
+  "phase_name": "Hotfix: Zone Color Visualization",
+  "task": "zone-colors-fix",
+  "total_tasks": "1",
   "status": "paused",
-  "completed_tasks": ["8.1", "8.2", "8.3"],
-  "remaining_tasks": [],
+  "completed_tasks": [
+    "zone-colors-fix: Phân tích bug MapboxDraw user_type property không render",
+    "zone-colors-fix: Thêm graphicTypeRef để track loại vùng trong callbacks",
+    "zone-colors-fix: Fix draw.create — set type ngay khi vẽ xong polygon",
+    "zone-colors-fix: Fix onChange dropdown — force re-render via changeMode toggle",
+    "zone-colors-fix: Thêm zone-type pre-selector UI trong toolbar (AN TOÀN/CHUNG/NGUY HIỂM)",
+    "zone-colors-fix: Build frontend (npm run build) → dist/",
+    "zone-colors-fix: Deploy lên Pi 10.42.0.1 via deploy_to_pi.py (user=pi)",
+    "zone-colors-fix: Xác nhận mesh-server.service active (running)"
+  ],
+  "remaining_tasks": [
+    "Verify trực tiếp trên Pi: vẽ polygon mới → chọn AN TOÀN → confirm màu xanh",
+    "Verify: đổi loại vùng via dropdown → màu cập nhật ngay (không cần reload)",
+    "Kiểm tra zones đã vẽ từ session cũ — có thể vẫn hiện đỏ vì thiếu type property"
+  ],
   "blockers": [],
-  "human_actions_pending": ["Test the final Tactical UI on real hardware", "Verify Quick Messages and Emergency SOS button in field testing"],
+  "human_actions_pending": [
+    "Test: Mở app, click KHOANH VÙNG, chọn AN TOÀN, vẽ polygon → phải xanh ngay",
+    "Test: Chọn polygon cũ đỏ → đổi dropdown sang AN TOÀN → phải xanh ngay",
+    "Nếu vùng cũ vẫn đỏ: xóa và vẽ lại để apply fix"
+  ],
   "decisions": [
-    "Used LocalStorage for Quick Messages so users can persist custom tactical shortcuts.",
-    "Integrated dynamic translation mapping for quick messages to allow language switching while preserving user modifications.",
-    "Added a dedicated Emergency SOS button that immediately sends a broadcast payload."
+    "Dùng requestAnimationFrame để defer changeMode sau setFeatureProperty — đảm bảo MapboxDraw store được update trước khi re-render.",
+    "Dùng updateMarkerOverlayRef để expose closure function ra ngoài useEffect scope.",
+    "Deploy qua deploy_to_pi.py dùng user=pi (mesh auth fail), Pi tại 10.42.0.1.",
+    "File đúng để sửa: extracted_mesh/frontend (không phải frontend/) — đây là bản đang chạy trên Pi."
   ],
   "uncommitted_files": [
-    "frontend/src/stores/useMeshStore.ts",
-    "frontend/src/components/TacticalPanel.tsx",
-    "frontend/src/i18n.ts"
+    "extracted_mesh/frontend/src/components/TacticalMap.tsx",
+    "frontend/src/components/TacticalMap.tsx",
+    "frontend/src/App.css",
+    "backend/app/services/geofencing.py",
+    "backend/app/routers/ai.py",
+    "backend/app/ws/websocket_handler.py",
+    "extracted_mesh/frontend/package.json",
+    "extracted_mesh/frontend/src/App.tsx",
+    "extracted_mesh/frontend/src/components/TacticalPanel.tsx",
+    "extracted_mesh/frontend/src/i18n.ts",
+    "extracted_mesh/frontend/src/stores/useMeshStore.ts"
   ],
-  "next_action": "Run final git commit and review codebase for any lingering technical debt or begin next milestone.",
-  "context_notes": "We just finished polishing the C2 (Command & Control) interface. The user requested inline editing for quick messages, and it was implemented using a mapping helper to ensure the default language switches smoothly while customized inputs are preserved exactly as typed."
+  "next_action": "Test thực tế: mở browser vào Pi, click KHOANH VÙNG, xem zone picker 3 màu xuất hiện, vẽ vùng, confirm màu đúng.",
+  "context_notes": "Bug root cause: MapboxDraw render styles dùng ['get', 'user_type'] nhưng property này chỉ được set sau khi user chọn dropdown — polygon vừa vẽ xong chưa có type nên fall-through về màu default (cam active, đỏ inactive). Fix: set type ngay trong draw.create event từ graphicTypeRef, và force re-render bằng changeMode toggle sau setFeatureProperty. Đã deploy thành công. Screenshot cuối cho thấy polygon đỏ — có thể là DANGER zone đúng màu, hoặc zone cũ từ trước fix. Cần verify."
 }

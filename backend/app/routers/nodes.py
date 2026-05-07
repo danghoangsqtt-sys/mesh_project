@@ -19,8 +19,15 @@ router = APIRouter()
 
 @router.get("/")
 async def list_nodes(db: AsyncSession = Depends(get_db)):
-    """Get all known mesh nodes with latest data."""
-    result = await db.execute(select(SoldierEntity).order_by(SoldierEntity.node_id))
+    """Get all active mesh nodes (seen in the last 15 seconds) with latest data."""
+    from datetime import datetime, timedelta
+    cutoff = datetime.now() - timedelta(seconds=15)
+    
+    result = await db.execute(
+        select(SoldierEntity)
+        .where(SoldierEntity.last_seen >= cutoff)
+        .order_by(SoldierEntity.node_id)
+    )
     soldiers = result.scalars().all()
     return [
         {
@@ -36,6 +43,19 @@ async def list_nodes(db: AsyncSession = Depends(get_db)):
             "pressure": s.pressure,
             "battery_voltage": s.battery_voltage,
             "status_flags": s.status_flags,
+            "flags": {
+                "gps_fix": bool(s.status_flags & 0x0001) if s.status_flags is not None else False,
+                "imu_valid": bool(s.status_flags & 0x0002) if s.status_flags is not None else False,
+                "hr_valid": bool(s.status_flags & 0x0004) if s.status_flags is not None else False,
+                "spo2_valid": bool(s.status_flags & 0x0008) if s.status_flags is not None else False,
+                "temp_valid": bool(s.status_flags & 0x0010) if s.status_flags is not None else False,
+                "low_battery": bool(s.status_flags & 0x0020) if s.status_flags is not None else False,
+                "critical_battery": bool(s.status_flags & 0x0040) if s.status_flags is not None else False,
+                "sensor_error": bool(s.status_flags & 0x0080) if s.status_flags is not None else False,
+                "alert": bool(s.status_flags & 0x0100) if s.status_flags is not None else False,
+                "man_down": bool(s.status_flags & 0x0200) if s.status_flags is not None else False,
+                "heat_stress": bool(s.status_flags & 0x0400) if s.status_flags is not None else False,
+            },
             "last_seen": s.last_seen.isoformat() if s.last_seen else None,
         }
         for s in soldiers

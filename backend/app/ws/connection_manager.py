@@ -52,10 +52,11 @@ class ConnectionManager:
         if not self._connections:
             return
 
-        message = json.dumps({
-            "type": "node_update",
-            "data": packet.to_dict(),
-        })
+        from datetime import datetime
+        data = packet.to_dict()
+        data["last_seen"] = datetime.now().isoformat()
+        data["name"] = None
+        message = json.dumps({"type": "node_update", "data": data})
 
         disconnected: list[WebSocket] = []
 

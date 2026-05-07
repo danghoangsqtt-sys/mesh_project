@@ -2,10 +2,10 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import TacticalMap from './components/TacticalMap';
 import TacticalPanel from './components/TacticalPanel';
-import EventLog from './components/EventLog';
 import { useWebSocket } from './hooks/useWebSocket';
 import MapManagerModal from './components/MapManagerModal';
 import SettingsModal from './components/SettingsModal';
+import { useMeshStore } from './stores/useMeshStore';
 
 function App() {
   useWebSocket();
@@ -21,8 +21,11 @@ function App() {
   const [selectedBaud, setSelectedBaud] = React.useState('115200');
   const [isConnecting, setIsConnecting] = React.useState(false);
 
+  const setNodes = useMeshStore(state => state.setNodes);
+
   React.useEffect(() => {
-    const fetchStatus = async () => {
+    const fetchStatusAndNodes = async () => {
+      // Fetch gateway status
       try {
         const res = await fetch('/api/status');
         const data = await res.json();
@@ -34,11 +37,23 @@ function App() {
       } catch (err) {
         setGatewayStatus(prev => ({ ...prev, connected: false }));
       }
+
+      // Fetch nodes (AJAX Auto-refresh fallback)
+      try {
+        const nodesRes = await fetch('/api/nodes');
+        if (nodesRes.ok) {
+          const nodesData = await nodesRes.json();
+          setNodes(nodesData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch nodes", err);
+      }
     };
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 2000);
+
+    fetchStatusAndNodes();
+    const interval = setInterval(fetchStatusAndNodes, 2000);
     return () => clearInterval(interval);
-  }, [isConnecting]);
+  }, [isConnecting, setNodes]);
 
   const handleConnectGateway = async () => {
     setIsConnecting(true);
@@ -153,10 +168,8 @@ function App() {
           </button>
         </div>
 
-        {/* Tab Content */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
           <TacticalPanel activeTab={activeTab} />
-          {activeTab === 'logs' && <EventLog />}
         </div>
 
       </div>

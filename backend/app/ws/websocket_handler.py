@@ -28,28 +28,69 @@ async def _packet_broadcaster():
         try:
             packet = await serial_bridge.packet_queue.get()
             
-            # Check geofence
-            geofence_event = geofencing_service.check_node(packet.node_id, packet.latitude, packet.longitude)
-            
+            # Check geofence (returns list of zone enter/exit events)
+            geofence_events = geofencing_service.check_node(packet.node_id, packet.latitude, packet.longitude)
+
             # Check vitals
             vital_events = vitals_service.check_vitals(
-                packet.node_id, packet.heart_rate, packet.spo2, 
+                packet.node_id, packet.heart_rate, packet.spo2,
                 packet.battery_voltage, packet.latitude, packet.longitude
             )
-            
-            all_events = vital_events
-            if geofence_event:
-                all_events.append(geofence_event)
+
+            all_events = vital_events + geofence_events
             
             # Broadcast the packet
             await manager.broadcast_packet(packet)
             
-            # Save and broadcast events
-            if all_events:
-                async with async_session() as db:
+            # Save node state, history, and events
+            from sqlalchemy import select
+            from app.models.soldier import SoldierEntity, PositionHistoryEntity
+            from datetime import datetime
+            import math
+            
+            def sanitize_float(val):
+                return 0.0 if math.isnan(val) else val
+            
+            lat_s = sanitize_float(packet.latitude)
+            lon_s = sanitize_float(packet.longitude)
+            hdg_s = sanitize_float(packet.heading)
+            temp_s = sanitize_float(packet.temperature)
+            hum_s = sanitize_float(packet.humidity)
+            pres_s = sanitize_float(packet.pressure)
+            batt_s = sanitize_float(packet.battery_voltage)
+            
+            async with async_session() as db:
+                # Upsert Soldier
+                result = await db.execute(select(SoldierEntity).where(SoldierEntity.node_id == packet.node_id))
+                soldier = result.scalar_one_or_none()
+                if not soldier:
+                    soldier = SoldierEntity(node_id=packet.node_id)
+                    db.add(soldier)
+                
+                soldier.latitude = lat_s
+                soldier.longitude = lon_s
+                soldier.heading = hdg_s
+                soldier.heart_rate = packet.heart_rate
+                soldier.spo2 = packet.spo2
+                soldier.temperature = temp_s
+                soldier.battery_voltage = batt_s
+                soldier.status_flags = packet.status_flags
+                soldier.last_seen = datetime.now()
+                
+                # Add position history
+                history = PositionHistoryEntity(
+                    node_id=packet.node_id,
+                    latitude=lat_s,
+                    longitude=lon_s,
+                    heading=hdg_s,
+                    timestamp=packet.timestamp
+                )
+                db.add(history)
+
+                if all_events:
                     for event in all_events:
                         db.add(event)
-                    await db.commit()
+                await db.commit()
                 
                 for event in all_events:
                     await manager.broadcast_event("EVENT", {

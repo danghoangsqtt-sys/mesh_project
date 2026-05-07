@@ -12,6 +12,7 @@ from typing import List, Tuple
 class PathfindingService:
     def __init__(self):
         self.graph = nx.Graph()
+        self.danger_zones = [] # List of dicts: {"lat": float, "lng": float, "radius": float}
         self._load_mock_graph()
 
     def _load_mock_graph(self):
@@ -64,6 +65,20 @@ class PathfindingService:
                 
         return nearest
 
+    def set_danger_zones(self, zones: List[dict]):
+        """Update danger zones."""
+        self.danger_zones = zones
+        
+    def _get_danger_penalty(self, lat: float, lng: float) -> float:
+        """Calculate penalty if a node is inside a danger zone."""
+        penalty = 0.0
+        for zone in self.danger_zones:
+            dist = self._haversine(lat, lng, zone["lat"], zone["lng"])
+            if dist < zone["radius"]:
+                # High penalty for being inside danger zone
+                penalty += 10000.0 / max(dist, 1.0)
+        return penalty
+
     def find_shortest_path(self, start_lat: float, start_lng: float, end_lat: float, end_lng: float) -> List[Tuple[float, float]]:
         """Find shortest path using A* algorithm."""
         start_node = self._find_nearest_node(start_lat, start_lng)
@@ -77,12 +92,15 @@ class PathfindingService:
             v_pos = self.graph.nodes[v]['pos']
             return self._haversine(u_pos[0], u_pos[1], v_pos[0], v_pos[1])
             
-        # Calculate weights for all edges if not present
+        # Calculate weights for all edges taking danger zones into account
         for u, v in self.graph.edges():
-            if 'weight' not in self.graph[u][v]:
-                u_pos = self.graph.nodes[u]['pos']
-                v_pos = self.graph.nodes[v]['pos']
-                self.graph[u][v]['weight'] = self._haversine(u_pos[0], u_pos[1], v_pos[0], v_pos[1])
+            u_pos = self.graph.nodes[u]['pos']
+            v_pos = self.graph.nodes[v]['pos']
+            
+            base_dist = self._haversine(u_pos[0], u_pos[1], v_pos[0], v_pos[1])
+            danger_penalty = self._get_danger_penalty(v_pos[0], v_pos[1])
+            
+            self.graph[u][v]['weight'] = base_dist + danger_penalty
 
         try:
             path = nx.astar_path(self.graph, start_node, end_node, heuristic=heuristic, weight='weight')

@@ -69,6 +69,7 @@ interface MeshStore {
   mapDownloadStatus: string;
   mapVersion: number;
   updateNode: (node: SoldierNode) => void;
+  setNodes: (nodes: SoldierNode[]) => void;
   addEvent: (event: MeshEvent) => void;
   setConnectionStatus: (status: 'connecting' | 'connected' | 'disconnected') => void;
   setMapDownloadState: (progress: number, status: string) => void;
@@ -93,6 +94,14 @@ export const useMeshStore = create<MeshStore>((set) => ({
     set((state) => ({
       nodes: { ...state.nodes, [node.node_id]: node }
     })),
+  setNodes: (newNodes) => 
+    set(() => {
+      const nodesMap: Record<number, SoldierNode> = {};
+      newNodes.forEach((n) => {
+        nodesMap[n.node_id] = n;
+      });
+      return { nodes: nodesMap };
+    }),
   addEvent: (event) =>
     set((state) => ({
       events: [event, ...state.events].slice(0, 100) // Keep last 100 events

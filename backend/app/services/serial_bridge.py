@@ -101,7 +101,7 @@ class SerialBridge:
                     import time
                     time.sleep(0.01)  # Small sleep to avoid busy-wait
 
-            except serial.SerialException as e:
+            except Exception as e:
                 logger.error("Serial read error: %s. Reconnecting...", e)
                 self.is_connected = False
                 if self._serial and self._serial.is_open:
@@ -112,30 +112,39 @@ class SerialBridge:
 
     def _process_raw_bytes(self, raw: bytes):
         """Process raw serial bytes: check for Gateway GPS sideband or binary packets."""
-        # Check for Gateway GPS sideband text: "GW_GPS:<lat>,<lng>\n"
         self._buffer.extend(raw)
 
-        # Try to extract text lines (Gateway GPS)
-        while b"\n" in self._buffer:
-            line_end = self._buffer.index(b"\n")
-            line = self._buffer[:line_end].decode("ascii", errors="ignore").strip()
-            self._buffer = self._buffer[line_end + 1:]
+        # 1. Process Gateway GPS text without corrupting binary packets
+        while b"GW_GPS:" in self._buffer:
+            start_idx = self._buffer.find(b"GW_GPS:")
+            end_idx = self._buffer.find(b"\n", start_idx)
+            
+            if end_idx != -1:
+                # Complete line found
+                line_bytes = self._buffer[start_idx:end_idx]
+                try:
+                    line = line_bytes.decode("ascii", errors="ignore").strip()
+                    self._parse_gateway_gps(line)
+                except Exception:
+                    pass
+                # Remove this processed text from the buffer
+                del self._buffer[start_idx:end_idx + 1]
+            else:
+                # Wait for the rest of the line
+                break
 
-            if line.startswith("GW_GPS:"):
-                self._parse_gateway_gps(line)
-                return
-
-            # If it's not a text line, put the bytes back for binary parsing
-            self._buffer = bytearray(line.encode("ascii")) + b"\n" + self._buffer
-            break
-
-        # Extract binary frames
+        # 2. Extract binary frames
         packets_data, self._buffer = extract_frames(self._buffer)
 
         for pkt_bytes in packets_data:
             packet = parse_packet(pkt_bytes)
             if packet:
                 self._enqueue_packet(packet)
+            else:
+                logger.warning(
+                    "Frame dropped: CRC mismatch or bad size (%d bytes) | raw=%s",
+                    len(pkt_bytes), pkt_bytes[:8].hex()
+                )
 
     def _parse_gateway_gps(self, line: str):
         """Parse Gateway GPS sideband: 'GW_GPS:<lat>,<lng>'."""
@@ -151,6 +160,7 @@ class SerialBridge:
 
     def _enqueue_packet(self, packet: SoldierPacket):
         """Thread-safe enqueue of parsed packet to the async queue."""
+        logger.info(f"Parsed packet for Node ID: {packet.node_id}")
         if self._loop:
             self._loop.call_soon_threadsafe(self._safe_put, packet)
 

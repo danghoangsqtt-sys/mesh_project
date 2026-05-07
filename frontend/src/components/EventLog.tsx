@@ -3,7 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useMeshStore } from '../stores/useMeshStore';
 import { format } from 'date-fns';
 
-const EventLog: React.FC = () => {
+interface EventLogProps {
+  flexMode?: boolean;
+}
+
+const EventLog: React.FC<EventLogProps> = ({ flexMode = false }) => {
   const { t } = useTranslation();
   const events = useMeshStore((state) => state.events);
 
@@ -18,10 +22,13 @@ const EventLog: React.FC = () => {
   return (
     <div className="glass-panel" style={{ 
       width: '100%', 
-      height: '250px',
+      height: flexMode ? '100%' : '250px',
+      flex: flexMode ? 1 : 'none',
       display: 'flex', 
       flexDirection: 'column',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      border: flexMode ? 'none' : undefined,
+      borderRadius: flexMode ? 0 : undefined
     }}>
       <div style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', backgroundColor: 'rgba(0,0,0,0.2)' }}>
         <h3 style={{ fontSize: '1rem', margin: 0 }}>{t('system_events')}</h3>

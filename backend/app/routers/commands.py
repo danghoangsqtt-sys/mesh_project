@@ -28,7 +28,7 @@ async def send_command(
     db: AsyncSession = Depends(get_db),
 ):
     """Queue a command to be sent to a node via the Gateway."""
-    from app.services.packet_parser import build_command_packet, build_frame
+    from app.services.packet_parser import build_command_packet
     from app.services.serial_bridge import serial_bridge
 
     # Map string command_type to int
@@ -38,9 +38,8 @@ async def send_command(
     payload = bytes.fromhex(cmd.payload_hex) if cmd.payload_hex else b""
     target_id = cmd.target_node_id if cmd.target_node_id is not None else 0xFFFF
 
-    # Build and frame the packet
+    # Build the 32-byte packet
     packet_bytes = build_command_packet(target_id, cmd_type_int, payload)
-    frame_bytes = build_frame(packet_bytes)
 
     # Save to database
     entity = CommandEntity(
@@ -53,7 +52,7 @@ async def send_command(
     await db.flush()
 
     # Write to serial bridge
-    success = await serial_bridge.write(frame_bytes)
+    success = await serial_bridge.write(packet_bytes)
     
     if success:
         entity.status = "SENT"

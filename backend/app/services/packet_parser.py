@@ -149,21 +149,30 @@ def build_frame(packet_data: bytes) -> bytes:
 
 
 def build_command_packet(target_node_id: int, command_type: int, payload: bytes) -> bytes:
-    """Build an outbound command packet for the LoRa Gateway.
+    """Build an outbound command packet (32 bytes) for the LoRa Gateway.
     
     Structure:
-    - 2 bytes: target_node_id (0xFFFF for broadcast)
-    - 1 byte: command_type
-    - 1 byte: payload_length
-    - N bytes: payload
-    - 2 bytes: CRC16
+    - 2 bytes: Header (0x5A 0xA5)
+    - 1 byte: target (uint8, 0 for broadcast)
+    - 27 bytes: payload (padded with 0x00)
+    - 2 bytes: CRC16 (over first 30 bytes)
+    - 2 bytes: CRC16 (over first 30 bytes)
     """
-    length = len(payload)
-    # Pack header: <HBB (uint16, uint8, uint8)
-    header = struct.pack("<HBB", target_node_id, command_type, length)
-    packet_data = header + payload
+    header = bytes([0x5A, 0xA5])
     
-    # Calculate CRC16 over header + payload
+    # Target is uint8 on the node (if target_node_id > 255, we fallback to 0 or low byte)
+    target = target_node_id & 0xFF
+    if target_node_id == 0xFFFF:
+        target = 0
+        
+    cmd_bytes = bytes([target])
+    
+    # Pad payload to 27 bytes
+    payload_padded = payload[:27].ljust(27, b'\x00')
+    
+    packet_data = header + cmd_bytes + payload_padded
+    
+    # Calculate CRC16 over the 30 bytes
     crc = compute_crc16(packet_data)
     
     # Append CRC16: <H
