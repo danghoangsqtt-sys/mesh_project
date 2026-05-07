@@ -1,0 +1,37 @@
+graph LR
+    subgraph View["UI Layer (Compose)"]
+        MapScreen[MapScreen]
+        TacticalPanel[TacticalPanel]
+        ConnectionBar[ConnectionBar]
+        EventLog[EventLog]
+    end
+
+    subgraph ViewModel["ViewModel Layer"]
+        MapVM[MapViewModel<br/>soldierPositions: StateFlow]
+        TacVM[TacticalViewModel<br/>soldiers: StateFlow<br/>alerts: SharedFlow]
+        ConnVM[ConnectionViewModel<br/>status: StateFlow]
+    end
+
+    subgraph Repository["Data Layer"]
+        SoldierRepo[SoldierRepository]
+        SettingsRepo[SettingsRepository]
+    end
+
+    subgraph DataSource["Data Sources"]
+        RoomDB[(Room DB)]
+        UsbSerial[UsbSerialManager]
+        WifiComm[WifiCommManager]
+    end
+
+    MapScreen --> MapVM
+    TacticalPanel --> TacVM
+    ConnectionBar --> ConnVM
+    EventLog --> TacVM
+
+    MapVM --> SoldierRepo
+    TacVM --> SoldierRepo
+    ConnVM --> SettingsRepo
+
+    SoldierRepo --> RoomDB
+    SoldierRepo --> UsbSerial
+    SoldierRepo --> WifiComm

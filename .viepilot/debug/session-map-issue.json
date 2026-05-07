@@ -1,0 +1,46 @@
+{
+  "id": "debug-map-not-displaying",
+  "status": "active",
+  "problem": {
+    "description": "Bản đồ trong QWebEngineView không hiển thị (màn hình trống hoặc đen).",
+    "symptoms": ["Bản đồ không hiển thị"],
+    "error_messages": [],
+    "affected_files": ["server/resources/map.html", "server/main_app.py"]
+  },
+  "investigation": {
+    "hypotheses": [
+      {
+        "id": 1,
+        "description": "Path to map.html is incorrect for QUrl on Windows.",
+        "status": "testing"
+      },
+      {
+        "id": 2,
+        "description": "Leaflet tiles failing to load, showing dark body background.",
+        "status": "testing"
+      },
+      {
+        "id": 3,
+        "description": "QWebEngineView needs specific permissions to load local files and external CDNs.",
+        "status": "confirmed"
+      }
+    ],
+    "tests_run": [
+      {
+        "command": "python test_map.py",
+        "output": "JS Console [ErrorMessageLevel]: Uncaught ReferenceError: L is not defined (Line 109)",
+        "timestamp": "2026-04-24T02:23:00Z"
+      }
+    ],
+    "findings": [
+      "Lỗi 'L is not defined' do Leaflet JS không được tải từ CDN unpkg.com.",
+      "Nguyên nhân là do chính sách bảo mật của QWebEngineView chặn tải nội dung từ xa (Remote URLs) khi load file HTML cục bộ (file://)."
+    ]
+  },
+  "resolution": {
+    "root_cause": "QWebEngineView mặc định chặn truy cập các file CDN bên ngoài khi trang gốc được load từ ổ đĩa local.",
+    "fix_applied": "Đã thêm QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls = True vào web_view trong main_app.py.",
+    "files_changed": ["server/main_app.py"],
+    "verification": "Chạy lại giao diện, bản đồ sẽ load đúng tiles từ OpenStreetMap thay vì màn hình tối."
+  }
+}

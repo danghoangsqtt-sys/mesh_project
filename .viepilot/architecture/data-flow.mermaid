@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant Sensors as Sensors<br/>(IMU/GPS/HR/Env)
+    participant FW as Soldier FW<br/>(FreeRTOS Tasks)
+    participant LoRa as LoRa Radio<br/>(SX1276 433MHz)
+    participant GW as Gateway Node
+    participant Serial as USB Serial
+    participant Srv as Flask Server
+    participant UI as Web Dashboard
+
+    Sensors->>FW: Raw data via I2C/UART (200Hz/10Hz/25Hz/1Hz)
+    FW->>FW: fusionTask: EKF + dead reckoning (200Hz)
+    FW->>FW: loraTask: pack SoldierPacket + CRC16 (1Hz)
+    FW->>LoRa: SoldierPacket 40 bytes
+    LoRa-->>GW: RF receive (ISR + onReceive)
+    GW->>GW: Validate CRC16
+    GW->>Serial: Frame packet [0xAA][payload][CRC][0x55]
+    Serial->>Srv: serial_comm.py reads bytes
+    Srv->>Srv: packet_handler.py unpacks struct
+    Srv->>Srv: soldier_manager.py updates state
+    Srv->>Srv: alert_manager.py evaluates thresholds
+    UI->>Srv: GET /api/soldiers (polling)
+    Srv-->>UI: JSON soldier array + alerts

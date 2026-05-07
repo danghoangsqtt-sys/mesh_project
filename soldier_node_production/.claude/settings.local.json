@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mode)",
+      "Bash(pio device *)",
+      "Read(//c/Users/dangh/.platformio/penv/Scripts/**)",
+      "Read(//c/Users/dangh/.platformio/penv/**)",
+      "Read(//c/Users/**)",
+      "Bash(~/.platformio/penv/Scripts/pio.exe device *)",
+      "Bash(~/.platformio/penv/Scripts/pio.exe run *)",
+      "Bash(cmd.exe *)",
+      "Bash(/c/Users/dangh/.platformio/penv/Scripts/pio.exe run *)",
+      "Bash(powershell.exe *)"
+    ]
+  }
+}

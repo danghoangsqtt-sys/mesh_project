@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sơ Đồ Đấu Nối - Solar LoRa32 Mesh Node</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .mermaid {
+            background-color: #2d2d2d;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        .instructions {
+            max-width: 800px;
+            margin-top: 40px;
+            background-color: #2d2d2d;
+            padding: 25px;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+        .instructions h3 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🔌 Sơ Đồ Đấu Nối: Solar LoRa32 Mesh Node</h1>
+
+    <div class="mermaid">
+flowchart TD
+    classDef solar fill:#f9a826,stroke:#333,stroke-width:2px,color:#000;
+    classDef power fill:#1565c0,stroke:#333,stroke-width:2px,color:#fff;
+    classDef charge fill:#2e7d32,stroke:#333,stroke-width:2px,color:#fff;
+    classDef batt fill:#00838f,stroke:#333,stroke-width:2px,color:#fff;
+    classDef board fill:#37474f,stroke:#333,stroke-width:3px,color:#fff;
+    classDef sensor fill:#6a1b9a,stroke:#333,stroke-width:2px,color:#fff;
+    classDef gps fill:#283593,stroke:#333,stroke-width:2px,color:#fff;
+
+    Solar["☀️ Tấm Pin Solar 25W 6V"]:::solar
+    Diode("Diode 1N5819 Chống ngược")
+    LM2596["⚡ Hạ Áp LM2596 chỉnh ra 5.00V"]:::power
+    
+    Solar -- "🔴 (+)" --> Diode
+    Diode -- "🔴 (+) vào IN+" --> LM2596
+    Solar -- "⚫ (-) vào IN-" --> LM2596
+
+    subgraph "Khối Nguồn (Sạc & Lưu Trữ)"
+        direction TB
+        TP1["TP4056 #1"]:::charge
+        TP2["TP4056 #2"]:::charge
+        TP3["TP4056 #3"]:::charge
+        
+        B1[("🔋 18650 #1")]:::batt
+        B2[("🔋 18650 #2")]:::batt
+        B3[("🔋 18650 #3")]:::batt
+        
+        TP1 <== "B+ / B-" ==> B1
+        TP2 <== "B+ / B-" ==> B2
+        TP3 <== "B+ / B-" ==> B3
+    end
+
+    LM2596 -- "🔴 OUT+ (5V)" ---> TP1 & TP2 & TP3
+    LM2596 -- "⚫ OUT- (GND)" ---> TP1 & TP2 & TP3
+
+    Node["📡 LilyGo LoRa32 433MHz"]:::board
+
+    TP1 & TP2 & TP3 -- "🔴 OUT+ nối Giắc Cắm JST Trắng" ---> Node
+    TP1 & TP2 & TP3 -- "⚫ OUT- nối Giắc Cắm JST Trắng" ---> Node
+
+    GPS["📍 GPS NEO-6M"]:::gps
+    BMP["🌡️ Mạch AHT20+BMP280 (Màu Tím)"]:::sensor
+
+    Node -- "🔴 3.3V vào VCC" --> GPS
+    Node -- "⚫ GND" --> GPS
+    
+    Node -- "🔴 3.3V vào VDD" --> BMP
+    Node -- "⚫ GND" --> BMP
+
+    Node -- "🟢 IO4 (Dây Xanh lá)" --> GPS_TX["Chân TX (GPS)"]
+    Node -- "🟡 IO12 (Dây Vàng)" --> GPS_RX["Chân RX (GPS)"]
+
+    Node -- "🟣 IO21 (Dây Tím)" --> BMP_SDA["Chân SDA (Sensor)"]
+    Node -- "🔵 IO22 (Dây Xanh dương)" --> BMP_SCL["Chân SCL (Sensor)"]
+    </div>
+
+    <div class="instructions">
+        <h3>Lưu ý cực kỳ quan trọng trước khi hàn:</h3>
+        <ul>
+            <li><strong>LM2596:</strong> Bắt buộc phải cấp điện năng lượng mặt trời vào trước, lấy đồng hồ đo áp ở đầu OUT, vặn biến trở sao cho hiện đúng <strong>5.0V</strong> rồi mới được nối vào TP4056. Tuyệt đối không nối vào mạch LoRa32 khi chưa chỉnh áp.</li>
+            <li><strong>Mạch Môi trường (Màu Tím):</strong> Thứ tự chân là <strong>VDD - SDA - GND - SCL</strong>. VDD nối 3.3V, GND nối GND, SDA nối IO21, SCL nối IO22.</li>
+            <li><strong>Chéo tín hiệu UART:</strong> Chân RX (IO4) của mạch LoRa phải nối với chân TX của module GPS. Chân TX (IO12) của mạch LoRa phải nối với chân RX của GPS.</li>
+            <li><strong>Cấp nguồn LoRa:</strong> Hàn dây từ OUT+ và OUT- của cụm TP4056 vào một chiếc <strong>giắc cắm JST PH2.0 màu trắng</strong> (thường đi kèm hộp LoRa32). Sau đó <strong>cắm giắc này thẳng vào cổng pin màu trắng ở đuôi mạch LoRa32</strong>. Làm thế này mạch sẽ đo được dung lượng pin chính xác và an toàn tuyệt đối.</li>
+        </ul>
+    </div>
+
+</body>
+</html>

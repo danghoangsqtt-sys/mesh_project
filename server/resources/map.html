@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tactical Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #1C1C1E; }
+        #map { width: 100%; height: 100%; }
+        
+        /* Custom Map Controls */
+        .leaflet-control-zoom a {
+            background-color: rgba(28, 28, 30, 0.8) !important;
+            color: #0A84FF !important;
+            border: 1px solid #3A3A3C !important;
+        }
+        .leaflet-control-zoom a:hover {
+            background-color: #2C2C2E !important;
+        }
+        
+        /* Map Markers */
+        .marker-icon {
+            width: 30px !important;
+            height: 30px !important;
+            border-radius: 50%;
+            border: 3px solid #4CAF50;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #3b5323;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .marker-icon.alert-ok { border-color: #4CAF50; }
+        .marker-icon.alert-warning { border-color: #FFC107; color: #FF9800; }
+        .marker-icon.alert-critical { border-color: #F44336; color: #F44336; }
+        .marker-icon.alert-emergency {
+            border-color: #F44336;
+            color: #F44336;
+            animation: pulse-emergency 1s infinite;
+        }
+        
+        .marker-icon.highlighted {
+            width: 40px !important;
+            height: 40px !important;
+            font-size: 18px;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+            z-index: 1000 !important;
+            background: #e8f5e9;
+        }
+        
+        @keyframes pulse-emergency {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.9); transform: scale(1); }
+            50% { box-shadow: 0 0 0 15px rgba(244, 67, 54, 0); transform: scale(1.1); }
+        }
+        
+        /* Popup Styling */
+        .leaflet-popup-content-wrapper {
+            background: white;
+            color: #333333;
+            border-radius: 8px;
+            border: 2px solid #556b2f;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .leaflet-popup-tip { background: white; border: 2px solid #556b2f; border-top: none; border-left: none; }
+        .leaflet-popup-content { margin: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .popup-header { font-size: 16px; font-weight: 600; color: #3b5323; margin-bottom: 8px; border-bottom: 2px solid #556b2f; padding-bottom: 5px; }
+        .popup-row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 13px; }
+        .popup-row span:first-child { color: #666666; font-weight: bold; }
+        .popup-row span:last-child { font-weight: 500; color: #111111; }
+        
+        /* Gateway Marker */
+        .gateway-icon {
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 8px;
+            border: 3px solid #2196F3;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #2196F3;
+            font-size: 16px;
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = {};
+        let gatewayMarker = null;
+        let pathLayer = null;
+        let highlightedMarker = null;
+
+        let currentTileLayer = null;
+
+        function setMapMode(mode, offlinePath) {
+            if (currentTileLayer) {
+                map.removeLayer(currentTileLayer);
+            }
+            if (mode === 'offline') {
+                currentTileLayer = L.tileLayer(offlinePath, {
+                    maxZoom: 19,
+                    attribution: 'Offline Map Tiles'
+                }).addTo(map);
+            } else {
+                currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+                    maxZoom: 19
+                }).addTo(map);
+            }
+        }
+
+        function initMap() {
+            // Default center to Nha Trang, Vietnam
+            map = L.map('map').setView([12.2388, 109.1967], 13);
+            
+            // Standard bright CartoDB Light tiles (avoids OSM 403 block on file://)
+            setMapMode('online', '');
+        }
+
+        function createIcon(nodeId, alertLevel, isHighlighted) {
+            const classes = ['alert-ok', 'alert-warning', 'alert-critical', 'alert-emergency'];
+            const cls = classes[alertLevel || 0];
+            const highlightCls = isHighlighted ? 'highlighted' : '';
+            return L.divIcon({
+                html: `<div class="marker-icon ${cls} ${highlightCls}">${nodeId}</div>`,
+                className: '',
+                iconSize: isHighlighted ? [40, 40] : [30, 30],
+                iconAnchor: isHighlighted ? [20, 20] : [15, 15]
+            });
+        }
+
+        // Called from Python
+        function updateSoldiers(soldiersJson) {
+            const soldiers = JSON.parse(soldiersJson);
+            
+            soldiers.forEach(s => {
+                if (s.latitude === 0 && s.longitude === 0) return;
+                
+                const isHighlighted = (highlightedMarker === s.nodeId);
+                const icon = createIcon(s.nodeId, s.alertLevel, isHighlighted);
+                
+                let alertsHtml = '';
+                if (s.alerts && s.alerts.length > 0) {
+                    alertsHtml = '<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #3A3A3C;">';
+                    s.alerts.forEach(a => {
+                        alertsHtml += `<div style="color: #FF453A; font-size: 11px; padding: 2px 0;">⚠ ${a.message}</div>`;
+                    });
+                    alertsHtml += '</div>';
+                }
+                
+                const popupContent = `
+                    <div class="popup-header">Soldier ${s.nodeId} ${s.team ? '(' + s.team + ')' : ''}</div>
+                    <div class="popup-row"><span>Position:</span><span>${s.latitude.toFixed(4)}, ${s.longitude.toFixed(4)}</span></div>
+                    <div class="popup-row"><span>HR:</span><span>${s.heartRate || 0} BPM</span></div>
+                    <div class="popup-row"><span>SpO₂:</span><span>${s.spo2 || 0}%</span></div>
+                    <div class="popup-row"><span>Temp:</span><span>${s.temperature ? s.temperature.toFixed(1) : '0.0'}°C</span></div>
+                    <div class="popup-row"><span>Battery:</span><span>${s.batteryVoltage ? s.batteryVoltage.toFixed(2) : '0.00'}V</span></div>
+                    ${alertsHtml}
+                `;
+
+                if (markers[s.nodeId]) {
+                    markers[s.nodeId].setLatLng([s.latitude, s.longitude]);
+                    markers[s.nodeId].setIcon(icon);
+                    markers[s.nodeId].setPopupContent(popupContent);
+                } else {
+                    const marker = L.marker([s.latitude, s.longitude], { icon: icon }).addTo(map);
+                    marker.bindPopup(popupContent);
+                    marker.on('click', () => {
+                        highlightSoldier(s.nodeId);
+                        // Send message back to Python if channel exists, otherwise just console
+                        console.log("MARKER_CLICKED:" + s.nodeId);
+                    });
+                    markers[s.nodeId] = marker;
+                }
+            });
+        }
+
+        // Called from Python
+        function updateGateway(lat, lon) {
+            if (lat === 0 && lon === 0) return;
+            
+            const icon = L.divIcon({
+                html: `<div class="gateway-icon">GW</div>`,
+                className: '',
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+            
+            if (gatewayMarker) {
+                gatewayMarker.setLatLng([lat, lon]);
+            } else {
+                gatewayMarker = L.marker([lat, lon], { icon: icon }).addTo(map);
+                gatewayMarker.bindPopup(`
+                    <div class="popup-header">Gateway Command</div>
+                    <div class="popup-row"><span>Position:</span><span>${lat.toFixed(4)}, ${lon.toFixed(4)}</span></div>
+                    <div class="popup-row"><span style="color:#34C759">System Online</span></div>
+                `);
+            }
+        }
+
+        // Called from Python
+        function highlightSoldier(nodeId) {
+            highlightedMarker = nodeId;
+            if (markers[nodeId]) {
+                map.setView(markers[nodeId].getLatLng(), 16, { animate: true });
+                markers[nodeId].openPopup();
+                // Force icon update for all to clear old highlights
+                Object.keys(markers).forEach(id => {
+                    const idNum = parseInt(id);
+                    // In a real app we'd keep alertLevel, here we just trigger a generic update or wait for next poll
+                    // Since Python will call updateSoldiers right after, we just let it update.
+                });
+            }
+        }
+
+        // Initialize on load
+        window.onload = initMap;
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+graph TD
+    subgraph SoldierNodes["Soldier Nodes (×N)"]
+        S1[Soldier Node 1<br/>ESP32 T-Beam]
+        S2[Soldier Node 2<br/>ESP32 T-Beam]
+        SN[Soldier Node N<br/>ESP32 T-Beam]
+    end
+
+    subgraph GW["Gateway Node"]
+        G[Gateway ESP32 T-Beam<br/>LoRa RX + Serial TX]
+    end
+
+    subgraph PC["Field Laptop"]
+        SRV[Flask Server<br/>app.py]
+        DB[(In-Memory State<br/>SoldierManager)]
+        WEB[Web Dashboard<br/>index.html]
+    end
+
+    S1 -- "LoRa 433 MHz SF9<br/>40-byte packet @ 1 Hz" --> G
+    S2 -- "LoRa 433 MHz SF9" --> G
+    SN -- "LoRa 433 MHz SF9" --> G
+    G -- "USB Serial 115200<br/>framed 0xAA…0x55" --> SRV
+    SRV --> DB
+    SRV -- "REST /api/*" --> WEB

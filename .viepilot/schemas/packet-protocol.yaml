@@ -1,0 +1,121 @@
+# Mesh Soldier Tracker — Packet Protocol Schema
+# Version: v1.0.0
+
+soldier_packet:
+  description: "40-byte binary struct transmitted over LoRa and USB Serial"
+  total_size_bytes: 40
+  encoding: "little-endian packed struct"
+  crc_algorithm: "CRC-CCITT-16 (0xFFFF init, 0x1021 poly)"
+  crc_coverage: "bytes 0..37 (excludes last 2 bytes)"
+
+  fields:
+    - name: node_id
+      type: uint16
+      offset: 0
+      size: 2
+      description: "Unique soldier identifier (1-254)"
+
+    - name: timestamp
+      type: uint32
+      offset: 2
+      size: 4
+      description: "Milliseconds since device boot"
+
+    - name: latitude
+      type: float32
+      offset: 6
+      size: 4
+      description: "WGS84 latitude in decimal degrees"
+
+    - name: longitude
+      type: float32
+      offset: 10
+      size: 4
+      description: "WGS84 longitude in decimal degrees"
+
+    - name: heading
+      type: float32
+      offset: 14
+      size: 4
+      description: "Heading in degrees (0-360, magnetic north)"
+
+    - name: heart_rate
+      type: uint8
+      offset: 18
+      size: 1
+      description: "Heart rate in BPM (0 = invalid)"
+
+    - name: spo2
+      type: uint8
+      offset: 19
+      size: 1
+      description: "Blood oxygen saturation % (0 = invalid)"
+
+    - name: temperature
+      type: float32
+      offset: 20
+      size: 4
+      description: "Ambient temperature in °C"
+
+    - name: humidity
+      type: float32
+      offset: 24
+      size: 4
+      description: "Relative humidity %"
+
+    - name: pressure
+      type: float32
+      offset: 28
+      size: 4
+      description: "Barometric pressure in hPa"
+
+    - name: battery_voltage
+      type: float32
+      offset: 32
+      size: 4
+      description: "Battery voltage in V (typical range 3.2-4.2)"
+
+    - name: status_flags
+      type: uint16
+      offset: 36
+      size: 2
+      description: "Bitmask — see flags below"
+
+    - name: crc16
+      type: uint16
+      offset: 38
+      size: 2
+      description: "CRC-CCITT-16 of bytes 0-37"
+
+  status_flags:
+    GPS_FIX:          0x0001
+    IMU_VALID:        0x0002
+    HR_VALID:         0x0004
+    SPO2_VALID:       0x0008
+    TEMP_VALID:       0x0010
+    LOW_BATTERY:      0x0020
+    CRITICAL_BATTERY: 0x0040
+    SENSOR_ERROR:     0x0080
+    ALERT:            0x0100
+    MAN_DOWN:         0x0200
+    HEAT_STRESS:      0x0400
+    HUMIDITY_VALID:   0x0800
+    PRESSURE_VALID:   0x1000
+
+serial_frame:
+  description: "USB Serial framing from gateway to server"
+  format: "[0xAA][40-byte SoldierPacket][CRC16_lo][CRC16_hi][0x55]"
+  total_size_bytes: 44
+  start_delimiter: 0xAA
+  end_delimiter: 0x55
+  baud_rate: 115200
+
+lora_config:
+  frequency_mhz: 433.0
+  spreading_factor: 9
+  bandwidth_khz: 125
+  sync_word: "0x12"
+  preamble_length: 8
+  crc_enabled: true
+  tx_rate_hz: 1
+  air_time_ms: ~11

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:\\\\Users\\\\dangh\\\\.platformio\\\\penv\\\\Scripts\\\\platformio.exe run *)",
+      "Bash(\"/c/Users/dangh/.platformio/penv/Scripts/platformio.exe\" run *)"
+    ]
+  }
+}

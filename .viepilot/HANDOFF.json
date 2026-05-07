@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-24T10:17:03Z",
+  "phase": "7",
+  "phase_name": "Hardware Control & Log Integration",
+  "task": "7.1 - UI Integration",
+  "total_tasks": "3",
+  "status": "paused",
+  "completed_tasks": [
+    "Thiết kế lại bố cục UI sử dụng QTabWidget (Tactical Control / System & Hardware)",
+    "Thêm thanh công cụ ConnectionBarWidget (Top Bar) để chọn cổng COM",
+    "Thêm LogPanelWidget để in Event Log và Raw Serial Monitor",
+    "Tăng độ tương phản UI (ENH-002)",
+    "Sửa lỗi layout giãn chiều cao của Top Bar"
+  ],
+  "remaining_tasks": [
+    "Tích hợp tính năng Tải/Chọn thư mục Bản đồ Offline",
+    "Hoàn thiện luồng ghi Raw Serial thực tế từ Gateway vào Log Panel (hiện tại mới mock cho MOCK port và log gửi lệnh)"
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    "Sử dụng Phương án B (Hệ thống Tabs) để tiết kiệm không gian cho danh sách lính mà vẫn giữ được tính năng theo dõi Log sự kiện",
+    "Không ép chết cổng COM bằng tham số khởi động nữa, cho phép thao tác chọn trên UI",
+    "Sử dụng nguồn CartoDB Light cho bản đồ thay vì OpenStreetMap để tránh lỗi 403 Access Blocked khi chạy ứng dụng Desktop local"
+  ],
+  "uncommitted_files": [
+    "server/main_app.py",
+    "server/ui_components.py",
+    "server/resources/map.html",
+    ".viepilot/TRACKER.md",
+    ".viepilot/requests/ENH-002.md",
+    "docs/brainstorm/session-2026-04-24-phase7.md"
+  ],
+  "next_action": "Bắt đầu với việc triển khai tính năng chọn Bản đồ Offline cho giao diện Map",
+  "context_notes": "UI hiện tại đã rất đẹp và chuẩn quân sự. Luồng tín hiệu Event Log đã chạy tốt, tuy nhiên phần đọc Raw Serial cần xử lý để không chặn giao diện và in ra log thô chính xác khi kết nối thật."
+}

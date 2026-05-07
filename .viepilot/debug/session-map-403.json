@@ -1,0 +1,31 @@
+{
+  "id": "debug-map-403-blocked",
+  "status": "active",
+  "problem": {
+    "description": "Bản đồ hiển thị thông báo '403r Access blocked. Referer is required by tile usage policy of OpenStreetMap'.",
+    "symptoms": ["Hiển thị ảnh báo lỗi Access blocked thay vì bản đồ thực tế."],
+    "error_messages": ["403r Access blocked"],
+    "affected_files": ["server/resources/map.html"]
+  },
+  "investigation": {
+    "hypotheses": [
+      {
+        "id": 1,
+        "description": "OpenStreetMap chặn các request từ file:// vì không có Referer header hợp lệ.",
+        "status": "confirmed"
+      }
+    ],
+    "tests_run": [],
+    "findings": [
+      "OpenStreetMap (OSM) server tự nguyện hiện tại chặn tất cả request không có Referer hợp lệ để chống việc sử dụng lậu.",
+      "Ứng dụng Desktop sử dụng `file:///` nên không có Referer hợp lệ khi gọi API tile của OSM, dẫn đến lỗi 403.",
+      "Thay thế bằng nguồn CartoDB Light (một nhà cung cấp khác sử dụng dữ liệu OSM nhưng ít khắt khe hơn với file:// và có màu sắc tươi sáng)."
+    ]
+  },
+  "resolution": {
+    "root_cause": "OpenStreetMap chặn các kết nối từ file:// (QWebEngineView) không có Referer.",
+    "fix_applied": "Đã đổi cấu hình L.tileLayer trong `map.html` sang sử dụng `CartoDB Light` thay vì mặc định của `OpenStreetMap`.",
+    "files_changed": ["server/resources/map.html"],
+    "verification": "Chạy lại giao diện, bản đồ sẽ load đầy đủ đường phố và địa hình sáng sủa, lỗi 403 bị loại bỏ hoàn toàn."
+  }
+}
